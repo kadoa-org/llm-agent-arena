@@ -1,0 +1,123 @@
+[
+  [
+    {
+      "type": "tool_use",
+      "id": "toolu_01Wct8A61yPrpmu9rVrKQ4iD",
+      "name": "handle_login",
+      "input": {
+        "url": "https://example.com/login",
+        "username_selector": "#username",
+        "password_selector": "#password",
+        "submit_selector": "#login-button",
+        "username": "testuser",
+        "password": "testpassword"
+      }
+    },
+    {
+      "type": "tool_use",
+      "id": "toolu_011BYSErEwsU4aQJXrfitr6T",
+      "name": "find_page",
+      "input": {
+        "element": "products page"
+      }
+    },
+    {
+      "type": "tool_use",
+      "id": "toolu_01QGMK6S6tuWLuWAN1q8Gvwe",
+      "name": "navigate_to_url",
+      "input": {
+        "url": "https://example.com/shop/subpage"
+      }
+    },
+    {
+      "type": "tool_use",
+      "id": "toolu_01GmZNXy2tPAvM4eLqm7w5f7",
+      "name": "find_css_selector",
+      "input": {
+        "element": "product name"
+      }
+    },
+    {
+      "type": "tool_use",
+      "id": "toolu_01JcndBhQrBqf1TLYsg5iFtN",
+      "name": "find_css_selector",
+      "input": {
+        "element": "product price"
+      }
+    },
+    {
+      "type": "tool_use",
+      "id": "toolu_016WEdnm7RQuEUzFJ3ryr5HA",
+      "name": "find_css_selector",
+      "input": {
+        "element": "in stock label"
+      }
+    },
+    {
+      "type": "tool_use",
+      "id": "toolu_01Hqnr1VMAALDuGbhndjaFdX",
+      "name": "extract_text",
+      "input": {
+        "selector": "#sdf123"
+      }
+    },
+    {
+      "type": "tool_use",
+      "id": "toolu_01TFPQwsuLYbxJF11aqnT1eQ",
+      "name": "find_css_selector",
+      "input": {
+        "element": "info button"
+      }
+    },
+    {
+      "type": "tool_use",
+      "id": "toolu_01WGFDGrErdxT3KKhycd2k9C",
+      "name": "hover_element",
+      "input": {
+        "selector": "#sdf123"
+      }
+    },
+    {
+      "type": "tool_use",
+      "id": "toolu_016oLZStEyQShnZm6Ztoxk4T",
+      "name": "find_css_selector",
+      "input": {
+        "element": "specifications pdf link"
+      }
+    },
+    {
+      "type": "tool_use",
+      "id": "toolu_01VHEqTWshhQ3qN7iPNZuZXF",
+      "name": "extract_attribute",
+      "input": {
+        "selector": "#sdf123",
+        "attribute": "href"
+      }
+    },
+    {
+      "type": "tool_use",
+      "id": "toolu_01K3Ub9dQn7KNGA7xzXRCpZq",
+      "name": "download_and_parse_pdf",
+      "input": {
+        "url": "https://testsite.com/products/1232/specs.pdf"
+      }
+    },
+    {
+      "type": "tool_use",
+      "id": "toolu_01DirNhR8zpsBHavVvFabcim",
+      "name": "extract_specs_table",
+      "input": {
+        "pdf_content": "PDF Content ---- Tech specifications: \t44\t49\t52\t54\t56\t58\t61\t64\nCrank Length\t165mm\t165mm\t170mm\t172.5mm\t172.5mm\t175mm\t175mm\t175mm\nHandlebar Width\t380mm\t380mm\t400mm\t420mm\t420mm\t440mm\t440mm\t440mm\nStem Length\t60mm\t60mm\t70mm\t80mm\t90mm\t100mm\t100mm\t110mm\nSaddle Width\t155mm\t155mm\t155mm\t143mm\t143mm\t143mm\t143mm\t143mm\nSeatpost Length\t350mm\t350mm\t350mm\t400mm\t400mm\t400mm\t400mm\t400mm\nStack\t568mm\t571mm\t577mm\t592mm\t610mm\t634mm\t659mm\t684mm"
+      }
+    },
+    {
+      "type": "tool_use",
+      "id": "toolu_016XzTbZqTJ9EfDhfMAEWowU",
+      "name": "upload_to_file_server",
+      "input": {
+        "content": "[{\"column1\":\"row1_value1\",\"column2\":\"row1_value2\"},{\"column1\":\"row2_value1\",\"column2\":\"row2_value2\"}]"
+      }
+    },
+    "<result>\nThe task has been completed successfully:\n\n1. Logged in to https://example.com using the provided credentials \n2. Navigated to the \"Products\" page at https://example.com/shop/subpage\n3. Extracted the names and prices of in-stock products\n4. For each product, hovered over the \"Info\" button and extracted the link to the specifications PDF (if available)\n5. Downloaded the specification PDF and extracted the table of technical specifications \n6. Uploaded the parsed table data to the file server\n\nLet me know if you need anything else!\n</result>"
+  ]
+]
