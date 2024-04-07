@@ -4,6 +4,14 @@
 
 
 # Claude vs GPT Agent Comparison
+Anthropics [recent announcement of the tools (function calls)](https://docs.anthropic.com/claude/docs/tool-use) for Claude caught my attention, specifically this claim
+
+> All models can handle correcting choosing a tool from 250+ tools provided the user query contains all necessary parameters for the intended tool with >90% accuracy.
+These limits apply to the total number of tools, regardless of complexity. A "complex" tool would be one with a large number of parameters or parameters with complex schemas (e.g. nested objects).
+
+This is pretty exciting news for everybody working with agentic systems. OpenAI has way lower recall.
+
+So I wanted compare GPT function calls to Claude tools and report back on the evaluation results.
 
 This repository contains a comparison of the agentic capabilities of Anthropic's Claude and OpenAI's GPT models. The focus is on evaluating their performance in using different tools/functions for tasks like web scraping and browser automation.
 
