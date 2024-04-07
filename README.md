@@ -95,12 +95,12 @@ You can add your own mock tools or edit the existing list of tools:
 ## Results
 The comparison results will be logged to the console, showing the performance of each model on the defined test cases.
 
-| Metric          | claude-3-opus-20240229 | gpt-4-0125-preview |
-|-----------------|--------|-----|
-| Successful Runs | 4 out of 6 | 6 out of 6 |
-| Avg Calls       | 14 to 18 | 11 to 15 |
-| Avg Accuracy    | 100% | 81.25% |
-| Avg Costs       | $0.807255 | $0.153540 |
+| Metric          | claude-3-opus-20240229 | gpt-4-0125-preview | claude-3-sonnet-20240229   |
+|-----------------|------------------------|--------------------|----------------------------|
+| Successful Runs | 4 out of 6             | 6 out of 6         | 4 out of 6                 |
+| Avg Tool Calls  | 16                     | 13                 | 13                         |
+| Avg Accuracy    | 100%                   | 81.25%             | 87.5%                      |
+| Avg Costs       | $0.807255              | $0.153540          | $0.147918                  |  
 
    ```
    Claude Evaluation:
@@ -108,12 +108,14 @@ The comparison results will be logged to the console, showing the performance of
    Tools Used: find_css_selector,find_css_selector,handle_login,find_page,navigate_to_url,find_css_selector,extract_text,find_css_selector,hover_element,find_css_selector,extract_attribute,download_and_parse_pdf,extract_specs_table,upload_to_file_server
    Tools Accuracy: 1
    Correct Result: true
+   Cost: $0.130653
 
    GPT Evaluation:
    Number of Tool Calls: 11
    Tools Used: handle_login,find_page,navigate_to_url,extract_text,extract_text,extract_text,hover_element,extract_links,extract_links,download_and_parse_pdf,upload_to_file_server
    Tools Accuracy: 0.75
    Correct Result: true
+   Cost: $0.130653
    ```
 
 ## Contributing

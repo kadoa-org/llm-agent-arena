@@ -8,9 +8,14 @@ const anthropic = new Anthropic({
     apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
+
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
+
+
+const CLAUDE_MODEL = "claude-3-sonnet-20240229"
+const GPT_MODEL = "gpt-4-0125-preview"
 
 const costConfig = {
     'gpt-4-0125-preview': {
@@ -20,6 +25,10 @@ const costConfig = {
     'claude-3-opus-20240229': {
         inputCostPer1MTokens: 15.00,
         outputCostPer1MTokens: 75.00,
+    },
+    'claude-3-sonnet-20240229': {
+        inputCostPer1MTokens: 3.00,
+        outputCostPer1MTokens: 15.00,
     },
 };
 
@@ -61,7 +70,7 @@ async function testClaude(testCase) {
     let response = await anthropic.messages.create(
         {
             max_tokens: 3024,
-            model: 'claude-3-opus-20240229',
+            model: CLAUDE_MODEL,
             tools: tools,
             messages: messages
         },
@@ -100,7 +109,7 @@ async function testClaude(testCase) {
         response = await anthropic.messages.create(
             {
                 max_tokens: 3024,
-                model: 'claude-3-opus-20240229',
+                model: CLAUDE_MODEL,
                 tools: tools,
                 messages: messages
             },
@@ -116,7 +125,7 @@ async function testClaude(testCase) {
     console.log(`\nFinal Response: ${finalResponse}`);
     results.push(finalResponse)
 
-    const cost = calculateCost('claude-3-opus-20240229', totalInputTokens, totalOutputTokens);
+    const cost = calculateCost(CLAUDE_MODEL, totalInputTokens, totalOutputTokens);
 
     return {
         results,
@@ -140,7 +149,7 @@ async function testGPT(testCase) {
     }));
     const runner = openai.beta.chat.completions
         .runTools({
-            model: 'gpt-4-0125-preview',
+            model: GPT_MODEL,
             messages: [{
                 role: 'user',
                 content: `${testCase.query}\n\nAdditional Parameters:\n${JSON.stringify(testCase.parameters, null, 2)}`
@@ -157,7 +166,7 @@ async function testGPT(testCase) {
     const finalUsage = await runner.totalUsage();
     totalInputTokens += finalUsage.prompt_tokens;
     totalOutputTokens += finalUsage.completion_tokens;
-    const cost = calculateCost('gpt-4-0125-preview', totalInputTokens, totalOutputTokens);
+    const cost = calculateCost(GPT_MODEL, totalInputTokens, totalOutputTokens);
 
     results.push(finalContent)
     return {
@@ -202,6 +211,7 @@ async function main() {
         const claudeOutputAccuracy = claudeToolsUsed[claudeToolsUsed.length - 1] === testCase.expectedLastStep;
 
         console.log(`\nClaude Evaluation:`);
+        console.log(`Model Used: ${CLAUDE_MODEL}`);
         console.log(`Number of Tool Calls: ${claudeToolsUsed.length}`);
         console.log(`Tools Used: ${claudeToolsUsed}`);
         console.log(`Tools Accuracy: ${claudeToolsAccuracy}`);
@@ -216,6 +226,7 @@ async function main() {
         const gptOutputAccuracy = gptToolsUsed[gptToolsUsed.length - 1] === testCase.expectedLastStep;
 
         console.log(`\nGPT Evaluation:`);
+        console.log(`Model Used: ${GPT_MODEL}`);
         console.log(`Number of Tool Calls: ${gptToolsUsed.length}`);
         console.log(`Tools Used: ${gptToolsUsed}`);
         console.log(`Tools Accuracy: ${gptToolsAccuracy}`);
