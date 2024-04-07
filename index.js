@@ -1,5 +1,6 @@
-const {Anthropic}  = require('@anthropic-ai/sdk');
+const {Anthropic} = require('@anthropic-ai/sdk');
 const OpenAI = require("openai");
+const fs = require('fs').promises;
 
 
 const anthropic = new Anthropic({
@@ -259,8 +260,8 @@ const tools = [
             console.log(`Extracting table data from ${args}`);
             // Simulate table extraction
             return [
-                { column1: "row1_value1", column2: "row1_value2" },
-                { column1: "row2_value1", column2: "row2_value2" },
+                {column1: "row1_value1", column2: "row1_value2"},
+                {column1: "row2_value1", column2: "row2_value2"},
             ];
         }
     },
@@ -298,7 +299,7 @@ const tools = [
         "function": async function (args) {
             console.log(`Extracting JSON data from ${args}`);
             // Simulate JSON extraction
-            return { key1: "value1", key2: "value2" };
+            return {key1: "value1", key2: "value2"};
         }
     },
     {
@@ -518,9 +519,18 @@ const tools = [
 
 const testCases = [
     {
-        "query": "You're an RPA bot. If you're missing a CSS selector, you need to call the find_selector tool by providing the description, to find a specific webpage by description, call the find_page tools. Here is your task: Log in to https://example.com using the provided credentials. Navigate to the 'Products' page and extract the names and prices of all products that are currently in stock. For each product, check if there is a detailed specification PDF available by hovering over the 'Info' button and extracting the link. If a PDF is available, download it and extract the table of technical specifications. Finally, upload the parsed technical specifications to the file server. ",
-        "expectedTools": ["handle_login", "navigate_to_url", "extract_text", "hover_element", "extract_attribute", "download_and_parse_pdf", "extract_specs_table", "upload_to_file_server"],
-        "expectedOutput": "upload_to_file_server",
+        "query": "You are an RPA bot. If you're missing a CSS selector, you need to call the find_selector tool by providing the description. To find a specific webpage by description, call the find_page tool. Here is your task: Log in to https://example.com using the provided credentials. Navigate to the 'Products' page and extract the names and prices of all products that are currently in stock. For each product, check if there is a detailed specification PDF available by hovering over the 'Info' button and extracting the link. If a PDF is available, download it and extract the table of technical specifications. Finally, upload the parsed technical specifications to the file server.",
+        "expectedTools": [
+            "handle_login",
+            "navigate_to_url",
+            "extract_text",
+            "hover_element",
+            "extract_attribute",
+            "download_and_parse_pdf",
+            "extract_specs_table",
+            "upload_to_file_server"
+        ],
+        "expectedLastStep": "upload_to_file_server",
         "parameters": {
             "login_url": "https://example.com/login",
             "submit_selector": "#login-button",
@@ -546,7 +556,7 @@ async function testClaude(testCase) {
             tools: tools,
             messages: messages
         },
-        { headers: { 'anthropic-beta': 'tools-2024-04-04' } }
+        {headers: {'anthropic-beta': 'tools-2024-04-04'}}
     );
 
     console.log(`\nInitial Response:`);
@@ -563,7 +573,7 @@ async function testClaude(testCase) {
 
         messages = [
             ...messages,
-            { "role": "assistant", "content": response.content },
+            {"role": "assistant", "content": response.content},
             {
                 "role": "user",
                 "content": [
@@ -583,7 +593,7 @@ async function testClaude(testCase) {
                 tools: tools,
                 messages: messages
             },
-            { headers: { 'anthropic-beta': 'tools-2024-04-04' } }
+            {headers: {'anthropic-beta': 'tools-2024-04-04'}}
         );
 
         console.log(`\nResponse:`);
@@ -611,7 +621,10 @@ async function testGPT(testCase) {
     const runner = openai.beta.chat.completions
         .runTools({
             model: 'gpt-4-0125-preview',
-            messages: [{ role: 'user', content: `${testCase.query}\n\nAdditional Parameters:\n${JSON.stringify(testCase.parameters, null, 2)}` }],
+            messages: [{
+                role: 'user',
+                content: `${testCase.query}\n\nAdditional Parameters:\n${JSON.stringify(testCase.parameters, null, 2)}`
+            }],
             tools: mappedTools,
         })
         .on('message', (message) => {
@@ -647,7 +660,7 @@ async function main() {
         // Evaluate Claude's performance
         const claudeToolsUsed = claudeResult.filter(c => c.type === "tool_use").map(toolUse => toolUse.name);
         const claudeToolsAccuracy = calculateAccuracy(claudeToolsUsed, testCase.expectedTools);
-        const claudeOutputAccuracy = claudeToolsUsed[claudeToolsUsed.length - 1] === testCase.expectedOutput;
+        const claudeOutputAccuracy = claudeToolsUsed[claudeToolsUsed.length - 1] === testCase.expectedLastStep;
 
         console.log(`\nClaude Evaluation:`);
         console.log(`Number of Tool Calls: ${claudeToolsUsed.length}`);
@@ -660,13 +673,20 @@ async function main() {
             message.tool_calls ? message.tool_calls.map(toolCall => toolCall.function.name) : []
         );
         const gptToolsAccuracy = calculateAccuracy(gptToolsUsed, testCase.expectedTools);
-        const gptOutputAccuracy = gptToolsUsed[gptToolsUsed.length - 1] === testCase.expectedOutput;
+        const gptOutputAccuracy = gptToolsUsed[gptToolsUsed.length - 1] === testCase.expectedLastStep;
 
         console.log(`\nGPT Evaluation:`);
         console.log(`Number of Tool Calls: ${gptToolsUsed.length}`);
         console.log(`Tools Used: ${gptToolsUsed}`);
         console.log(`Tools Accuracy: ${gptToolsAccuracy}`);
         console.log(`Correct Result: ${gptOutputAccuracy}`);
+
+
+        await fs.writeFile('results/claude_results.json', JSON.stringify(claudeResults, null, 2));
+        await fs.writeFile('results/gpt_results.json', JSON.stringify(gptResults, null, 2));
+
+        console.log('Results saved to JSON files.');
+
     }
 
 }
