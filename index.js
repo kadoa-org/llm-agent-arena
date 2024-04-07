@@ -519,8 +519,8 @@ const tools = [
 const testCases = [
     {
         "query": "You're an RPA bot. If you need to find a css selector or find a page you should call the find_page or find_selector function. Here is your task: Log in to https://example.com using the provided credentials. Navigate to the 'Products' page and extract the names and prices of all products that are currently in stock. For each product, check if there is a detailed specification PDF available by hovering over the 'Info' button and extracting the link. If a PDF is available, download it and extract the table of technical specifications. Finally, upload the parsed technical specifications to the file server. ",
-        "expectedTools": ["handle_login", "navigate_to_url", "extract_text", "hover_element", "extract_attribute", "download_file", "extract_table", "fill_form", "click_element"],
-        "expectedOutput": "Submitted a list of 5 products with technical specifications to the contact form.",
+        "expectedTools": ["handle_login", "navigate_to_url", "extract_text", "hover_element", "extract_attribute", "download_and_parse_pdf", "extract_specs_table", "upload_to_file_server"],
+        "expectedOutput": "upload_to_file_server",
         "parameters": {
             "login_url": "https://example.com/login",
             "submit_selector": "#login-button",
@@ -625,6 +625,18 @@ async function testGPT(testCase) {
     return results;
 }
 
+function calculateAccuracy(usedTools, expectedTools) {
+    const correctTools = usedTools.filter(tool => expectedTools.includes(tool));
+    return correctTools.length / expectedTools.length;
+}
+
+function calculateOutputAccuracy(actualOutput, expectedOutput) {
+    if (typeof actualOutput === 'string') {
+        return actualOutput.includes(expectedOutput) ? 1 : 0;
+    } else {
+        return 0;
+    }
+}
 
 async function main() {
     const claudeResults = [];
@@ -637,13 +649,30 @@ async function main() {
 
         const gptResult = await testGPT(testCase);
         gptResults.push(gptResult);
+
+        // Evaluate Claude's performance
+        const claudeToolsUsed = claudeResult.filter(c => c.type === "tool_use").map(toolUse => toolUse.name);
+        const claudeToolsAccuracy = calculateAccuracy(claudeToolsUsed, testCase.expectedTools);
+        const claudeOutputAccuracy = claudeToolsUsed[claudeToolsUsed.length - 1] === testCase.expectedOutput;
+
+        console.log(`\nClaude Evaluation:`);
+        console.log(`Tools Used: ${claudeToolsUsed}`);
+        console.log(`Tools Accuracy: ${claudeToolsAccuracy}`);
+        console.log(`Correct Result: ${claudeOutputAccuracy}`);
+
+        // Evaluate GPT's performance
+        const gptToolsUsed = gptResult.flatMap(message =>
+            message.tool_calls ? message.tool_calls.map(toolCall => toolCall.function.name) : []
+        );
+        const gptToolsAccuracy = calculateAccuracy(gptToolsUsed, testCase.expectedTools);
+        const gptOutputAccuracy = gptToolsUsed[gptToolsUsed.length - 1] === testCase.expectedOutput;
+
+        console.log(`\nGPT Evaluation:`);
+        console.log(`Tools Used: ${gptToolsUsed}`);
+        console.log(`Tools Accuracy: ${gptToolsAccuracy}`);
+        console.log(`Correct Result: ${gptOutputAccuracy}`);
     }
 
-    // Aggregate the results and print out a comparison
-    // You can calculate overall metrics across all test cases
-    // like average accuracy, total test runtime, etc.
-    console.log('Claude Results:', claudeResults);
-    console.log('GPT Results:', gptResults);
 }
 
 main();
