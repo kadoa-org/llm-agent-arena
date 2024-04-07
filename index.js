@@ -518,7 +518,7 @@ const tools = [
 
 const testCases = [
     {
-        "query": "You're an RPA bot. If you need to find a css selector or find a page you should call the find_page or find_selector function. Here is your task: Log in to https://example.com using the provided credentials. Navigate to the 'Products' page and extract the names and prices of all products that are currently in stock. For each product, check if there is a detailed specification PDF available by hovering over the 'Info' button and extracting the link. If a PDF is available, download it and extract the table of technical specifications. Finally, upload the parsed technical specifications to the file server. ",
+        "query": "You're an RPA bot. If you're missing a CSS selector, you need to call the find_selector tool by providing the description, to find a specific webpage by description, call the find_page tools. Here is your task: Log in to https://example.com using the provided credentials. Navigate to the 'Products' page and extract the names and prices of all products that are currently in stock. For each product, check if there is a detailed specification PDF available by hovering over the 'Info' button and extracting the link. If a PDF is available, download it and extract the table of technical specifications. Finally, upload the parsed technical specifications to the file server. ",
         "expectedTools": ["handle_login", "navigate_to_url", "extract_text", "hover_element", "extract_attribute", "download_and_parse_pdf", "extract_specs_table", "upload_to_file_server"],
         "expectedOutput": "upload_to_file_server",
         "parameters": {
@@ -631,13 +631,6 @@ function calculateAccuracy(usedTools, expectedTools) {
     return correctTools.length / expectedTools.length;
 }
 
-function calculateOutputAccuracy(actualOutput, expectedOutput) {
-    if (typeof actualOutput === 'string') {
-        return actualOutput.includes(expectedOutput) ? 1 : 0;
-    } else {
-        return 0;
-    }
-}
 
 async function main() {
     const claudeResults = [];
@@ -657,6 +650,7 @@ async function main() {
         const claudeOutputAccuracy = claudeToolsUsed[claudeToolsUsed.length - 1] === testCase.expectedOutput;
 
         console.log(`\nClaude Evaluation:`);
+        console.log(`Number of Tool Calls: ${claudeToolsUsed.length}`);
         console.log(`Tools Used: ${claudeToolsUsed}`);
         console.log(`Tools Accuracy: ${claudeToolsAccuracy}`);
         console.log(`Correct Result: ${claudeOutputAccuracy}`);
@@ -669,6 +663,7 @@ async function main() {
         const gptOutputAccuracy = gptToolsUsed[gptToolsUsed.length - 1] === testCase.expectedOutput;
 
         console.log(`\nGPT Evaluation:`);
+        console.log(`Number of Tool Calls: ${gptToolsUsed.length}`);
         console.log(`Tools Used: ${gptToolsUsed}`);
         console.log(`Tools Accuracy: ${gptToolsAccuracy}`);
         console.log(`Correct Result: ${gptOutputAccuracy}`);
