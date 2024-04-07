@@ -95,27 +95,29 @@ You can add your own mock tools or edit the existing list of tools:
 ## Results
 The comparison results will be logged to the console, showing the performance of each model on the defined test cases.
 
-| Metric          | claude-3-opus-20240229 | gpt-4-0125-preview | claude-3-sonnet-20240229   |
-|-----------------|------------------------|--------------------|----------------------------|
-| Successful Runs | 4 out of 6             | 6 out of 6         | 4 out of 6                 |
-| Avg Tool Calls  | 16                     | 13                 | 13                         |
-| Avg Accuracy    | 100%                   | 81.25%             | 87.5%                      |
-| Avg Costs       | $0.807255              | $0.153540          | $0.147918                  |  
+| Metric          | claude-3-opus-20240229 | gpt-4-0125-preview | claude-3-sonnet-20240229 | gpt-3.5-turbo-0125 |
+|-----------------|------------------------|--------------------|--------------------------|--------------------|
+| Avg Tool Calls  | 16                     | 13                 | 11                       | 9                  |
+| Avg Accuracy    | 100%                   | 81.25%             | 87.5%                    | 79.17%                |
+| Avg Costs       | $0.807255              | $0.153540          | $0.119638                | $0.008145          | 
 
    ```
-   Claude Evaluation:
-   Number of Tool Calls: 14
-   Tools Used: find_css_selector,find_css_selector,handle_login,find_page,navigate_to_url,find_css_selector,extract_text,find_css_selector,hover_element,find_css_selector,extract_attribute,download_and_parse_pdf,extract_specs_table,upload_to_file_server
-   Tools Accuracy: 1
-   Correct Result: true
-   Cost: $0.130653
+ 
+Claude Evaluation:
+Model Used: claude-3-sonnet-20240229
+Number of Tool Calls: 12
+Tools Used: find_page,find_css_selector,find_css_selector,handle_login,find_page,navigate_to_url,extract_json,hover_element,extract_attribute,download_and_parse_pdf,extract_specs_table,upload_to_file_server
+Tools Accuracy: 0.875
+Correct Result: true
+Cost: $0.136581
 
-   GPT Evaluation:
-   Number of Tool Calls: 11
-   Tools Used: handle_login,find_page,navigate_to_url,extract_text,extract_text,extract_text,hover_element,extract_links,extract_links,download_and_parse_pdf,upload_to_file_server
-   Tools Accuracy: 0.75
-   Correct Result: true
-   Cost: $0.130653
+GPT Evaluation:
+Model Used: gpt-3.5-turbo-0125
+Number of Tool Calls: 9
+Tools Used: handle_login,navigate_to_url,extract_html,find_css_selector,find_page,hover_element,extract_attribute,download_and_parse_pdf,upload_to_file_server
+Tools Accuracy: 0.75
+Correct Result: true
+Cost: $0.007377
    ```
 
 ## Contributing

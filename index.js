@@ -22,6 +22,10 @@ const costConfig = {
         inputCostPer1MTokens: 10.00,
         outputCostPer1MTokens: 30.00,
     },
+    'gpt-3.5-turbo-0125': {
+        inputCostPer1MTokens: 0.50,
+        outputCostPer1MTokens: 1.50,
+    },
     'claude-3-opus-20240229': {
         inputCostPer1MTokens: 15.00,
         outputCostPer1MTokens: 75.00,
