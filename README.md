@@ -4,7 +4,7 @@
 
 
 # Claude vs GPT Agent Comparison
-Anthropics [recent announcement of the tools (function calls)](https://docs.anthropic.com/claude/docs/tool-use) for Claude caught my attention, specifically this claim
+Anthropics [recent announcement of tools (function calls)](https://docs.anthropic.com/claude/docs/tool-use) for Claude caught my attention, specifically this claim:
 
 > All models can handle correcting choosing a tool from 250+ tools provided the user query contains all necessary parameters for the intended tool with >90% accuracy.
 These limits apply to the total number of tools, regardless of complexity. A "complex" tool would be one with a large number of parameters or parameters with complex schemas (e.g. nested objects).
