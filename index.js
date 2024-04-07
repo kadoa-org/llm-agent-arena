@@ -117,11 +117,10 @@ async function testClaude(testCase) {
     results.push(finalResponse)
 
     const cost = calculateCost('claude-3-opus-20240229', totalInputTokens, totalOutputTokens);
-    console.log(`\nClaude Cost: $${cost.toFixed(6)}`);
 
     return {
         results,
-        cost,
+        cost: cost.toFixed(6),
     };
 }
 
@@ -159,12 +158,11 @@ async function testGPT(testCase) {
     totalInputTokens += finalUsage.prompt_tokens;
     totalOutputTokens += finalUsage.completion_tokens;
     const cost = calculateCost('gpt-4-0125-preview', totalInputTokens, totalOutputTokens);
-    console.log(`\nGPT Cost: $${cost.toFixed(6)}`);
 
     results.push(finalContent)
     return {
         results,
-        cost,
+        cost: cost.toFixed(6),
     };
 }
 
@@ -189,14 +187,17 @@ async function main() {
 
     for (const testCase of testCases) {
         console.log(`\n${'='.repeat(50)}\nTest Case: ${testCase.query}\n${'='.repeat(50)}`);
+
         const claudeResult = await testClaude(testCase);
-        claudeResults.push(claudeResult);
+        claudeResults.push(claudeResult.results);
+        const claudeCost = claudeResult.cost;
 
         const gptResult = await testGPT(testCase);
-        gptResults.push(gptResult);
+        gptResults.push(gptResult.results);
+        const gptCost = gptResult.cost;
 
         // Evaluate Claude's performance
-        const claudeToolsUsed = claudeResult.filter(c => c.type === "tool_use").map(toolUse => toolUse.name);
+        const claudeToolsUsed = claudeResult.results.filter(c => c.type === "tool_use").map(toolUse => toolUse.name);
         const claudeToolsAccuracy = calculateAccuracy(claudeToolsUsed, testCase.expectedTools);
         const claudeOutputAccuracy = claudeToolsUsed[claudeToolsUsed.length - 1] === testCase.expectedLastStep;
 
@@ -205,9 +206,10 @@ async function main() {
         console.log(`Tools Used: ${claudeToolsUsed}`);
         console.log(`Tools Accuracy: ${claudeToolsAccuracy}`);
         console.log(`Correct Result: ${claudeOutputAccuracy}`);
+        console.log(`Cost: $${claudeCost}`);
 
         // Evaluate GPT's performance
-        const gptToolsUsed = gptResult.flatMap(message =>
+        const gptToolsUsed = gptResult.results.flatMap(message =>
             message.tool_calls ? message.tool_calls.map(toolCall => toolCall.function.name) : []
         );
         const gptToolsAccuracy = calculateAccuracy(gptToolsUsed, testCase.expectedTools);
@@ -218,15 +220,11 @@ async function main() {
         console.log(`Tools Used: ${gptToolsUsed}`);
         console.log(`Tools Accuracy: ${gptToolsAccuracy}`);
         console.log(`Correct Result: ${gptOutputAccuracy}`);
-
-
-        await fs.writeFile('results/claude_results.json', JSON.stringify(claudeResults, null, 2));
-        await fs.writeFile('results/gpt_results.json', JSON.stringify(gptResults, null, 2));
-
-        console.log('Results saved to JSON files.');
-
+        console.log(`Cost: $${gptCost}`);
     }
 
+    await fs.writeFile('results/claude_results.json', JSON.stringify(claudeResults, null, 2));
+    await fs.writeFile('results/gpt_results.json', JSON.stringify(gptResults, null, 2));
+    console.log('Results saved to JSON files.');
 }
-
 main();
