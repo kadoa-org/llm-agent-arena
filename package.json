@@ -1,0 +1,12 @@
+{
+  "name": "claude-gpt-agentic-comparison",
+  "main": "index.js",
+  "private": true,
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.20.1",
+    "openai": "^4.33.0"
+  }
+}
