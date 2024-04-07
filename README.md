@@ -97,7 +97,7 @@ You can add your own mock tools or edit the existing list of tools:
 | Metric          | claude-3-opus-20240229 | gpt-4-0125-preview | claude-3-sonnet-20240229 | gpt-3.5-turbo-0125 |
 |-----------------|------------------------|--------------------|--------------------------|--------------------|
 | Avg Tool Calls  | 16                     | 13                 | 11                       | 9                  |
-| Avg Accuracy    | 100%                   | 81.25%             | 87.5%                    | 79.17%                |
+| Avg Accuracy    | 100%                   | 81.25%             | 87.5%                    | 79.17%             |
 | Avg Costs       | $0.807255              | $0.153540          | $0.119638                | $0.008145          | 
 
 
