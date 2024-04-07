@@ -12,6 +12,17 @@ const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
 
+const costConfig = {
+    'gpt-4-0125-preview': {
+        inputCostPer1MTokens: 10.00,
+        outputCostPer1MTokens: 30.00,
+    },
+    'claude-3-opus-20240229': {
+        inputCostPer1MTokens: 15.00,
+        outputCostPer1MTokens: 75.00,
+    },
+};
+
 const testCases = [
     {
         "query": "You are an RPA bot. If you're missing a CSS selector, you need to call the find_selector tool by providing the description. To find a specific webpage by description, call the find_page tool. Here is your task: Log in to https://example.com using the provided credentials. Navigate to the 'Products' page and extract the names and prices of all products that are currently in stock. For each product, check if there is a detailed specification PDF available by hovering over the 'Info' button and extracting the link. If a PDF is available, download it and extract the table of technical specifications. Finally, upload the parsed technical specifications to the file server.",
@@ -37,6 +48,9 @@ const testCases = [
 
 async function testClaude(testCase) {
     const results = []
+    let totalInputTokens = 0;
+    let totalOutputTokens = 0;
+
     let messages = [
         {
             "role": "user",
@@ -62,6 +76,8 @@ async function testClaude(testCase) {
         const toolUse = response.content.find(block => block.type === "tool_use");
         const toolName = toolUse.name;
         const toolInput = toolUse.input;
+        totalInputTokens += response.usage.input_tokens;
+        totalOutputTokens += response.usage.output_tokens;
         results.push(toolUse)
         const toolFunction = tools.find(tool => tool.name === toolName).function;
         const toolResult = await toolFunction(JSON.stringify(toolInput, null, 2));
@@ -99,11 +115,21 @@ async function testClaude(testCase) {
     const finalResponse = response.content.find(block => block.type === "text")?.text;
     console.log(`\nFinal Response: ${finalResponse}`);
     results.push(finalResponse)
-    return results
+
+    const cost = calculateCost('claude-3-opus-20240229', totalInputTokens, totalOutputTokens);
+    console.log(`\nClaude Cost: $${cost.toFixed(6)}`);
+
+    return {
+        results,
+        cost,
+    };
 }
 
 async function testGPT(testCase) {
     const results = []
+    let totalInputTokens = 0;
+    let totalOutputTokens = 0;
+
     const mappedTools = tools.map(tool => ({
         type: 'function',
         function: {
@@ -129,8 +155,17 @@ async function testGPT(testCase) {
 
     const finalContent = await runner.finalContent();
     console.log('Final content:', finalContent);
+    const finalUsage = await runner.totalUsage();
+    totalInputTokens += finalUsage.prompt_tokens;
+    totalOutputTokens += finalUsage.completion_tokens;
+    const cost = calculateCost('gpt-4-0125-preview', totalInputTokens, totalOutputTokens);
+    console.log(`\nGPT Cost: $${cost.toFixed(6)}`);
+
     results.push(finalContent)
-    return results;
+    return {
+        results,
+        cost,
+    };
 }
 
 function calculateAccuracy(usedTools, expectedTools) {
@@ -139,6 +174,14 @@ function calculateAccuracy(usedTools, expectedTools) {
     return correctTools.length / expectedTools.length;
 }
 
+function calculateCost(modelName, inputTokens, outputTokens) {
+    const { inputCostPer1MTokens, outputCostPer1MTokens } = costConfig[modelName];
+
+    const inputCost = (inputTokens / 1000000) * inputCostPer1MTokens;
+    const outputCost = (outputTokens / 1000000) * outputCostPer1MTokens;
+
+    return inputCost + outputCost;
+}
 
 async function main() {
     const claudeResults = [];

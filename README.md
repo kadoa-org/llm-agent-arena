@@ -93,8 +93,19 @@ You can add your own mock tools or edit the existing list of tools:
 
 
 ## Results
+The comparison results will be logged to the console, showing the performance of each model on the defined test cases.
 
-The comparison results will be logged to the console, showing the performance of each model on the defined test cases. Metrics include tool selection accuracy, argument accuracy, and latency.
+| Metric          | claude-3-opus-20240229 | gpt-4-0125-preview |
+|-----------------|--------|-----|
+| Successful Runs | 4 out of 6 | 6 out of 6 |
+| Avg Calls       | 14 to 18 | 11 to 15 |
+| Avg Accuracy    | 100% | 81.25% |
+| Avg Costs       | 100% | 81.25% |
+
+prompt and completion cost
+
+gpt-4-0125-preview	$0.00001000	$0.00003000
+opus Input: $15 / MTok  $75 / MTok
 
    ```
    Claude Evaluation:
