@@ -1,4 +1,9 @@
-# Claude-GPT Agentic Comparison
+<p align="center">
+  <img src="https://github.com/AdrianKrebs/claude-gpt-agentic-comparison/blob/master/logo-github.png" height="300" alt="agent-comparison" />
+</p>
+
+
+# Claude vs GPT Agent Comparison
 
 This repository contains a comparison of the agentic capabilities of Anthropic's Claude and OpenAI's GPT models. The focus is on evaluating their performance in using different tools/functions for tasks like web scraping and browser automation.
 
