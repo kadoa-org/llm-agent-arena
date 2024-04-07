@@ -626,7 +626,8 @@ async function testGPT(testCase) {
 }
 
 function calculateAccuracy(usedTools, expectedTools) {
-    const correctTools = usedTools.filter(tool => expectedTools.includes(tool));
+    const uniqueUsedTools = [...new Set(usedTools)];
+    const correctTools = uniqueUsedTools.filter(tool => expectedTools.includes(tool));
     return correctTools.length / expectedTools.length;
 }
 
