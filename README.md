@@ -4,16 +4,9 @@
 
 
 # Claude vs GPT Agent Comparison
-Anthropics [recent announcement of tools (function calls)](https://docs.anthropic.com/claude/docs/tool-use) for Claude caught my attention, specifically this claim:
+Anthropic's recent announcement of [tool use (function calls)](https://docs.anthropic.com/claude/docs/tool-use) for Claude caught my attention, particularly their claim that "all models can handle correcting choosing a tool from 250+ tools provided the user query contains all necessary parameters for the intended tool with >90% accuracy."
 
-> All models can handle correcting choosing a tool from 250+ tools provided the user query contains all necessary parameters for the intended tool with >90% accuracy.
-These limits apply to the total number of tools, regardless of complexity. A "complex" tool would be one with a large number of parameters or parameters with complex schemas (e.g. nested objects).
-
-This is pretty exciting news for everybody working with agentic systems. OpenAI has way lower recall.
-
-So I wanted compare GPT function calls to Claude tools and report back on the evaluation results.
-
-This repository contains a comparison of the agentic capabilities of Anthropic's Claude and OpenAI's GPT models. The focus is on evaluating their performance in using different tools/functions for tasks like web scraping and browser automation.
+As someone involved in developing agentic systems, I was intrigued. I've been working with GPT function calling for a while and know that its recall for larger and more complex functions is quite low. So, I decided to compare GPT and Claude's performance in using different tools for tasks like web scraping and browser automation.
 
 ## Features
 
@@ -94,12 +87,11 @@ You can add your own mock tools or edit the existing list of tools:
 
 ## Results
 
-| Metric          | claude-3-opus-20240229 | gpt-4-0125-preview | claude-3-sonnet-20240229 | gpt-3.5-turbo-0125 |
-|-----------------|------------------------|--------------------|--------------------------|--------------------|
-| Avg Tool Calls  | 16                     | 13                 | 11                       | 9                  |
-| Avg Accuracy    | 100%                   | 81.25%             | 87.5%                    | 79.17%             |
-| Avg Costs       | $0.807255              | $0.153540          | $0.119638                | $0.008145          | 
-
+| Metric                  | claude-3-opus-20240229 | gpt-4-0125-preview | claude-3-sonnet-20240229 | gpt-3.5-turbo-0125 |
+|-------------------------|------------------------|--------------------|--------------------------|--------------------|
+| Avg Tool Calls          | 16                     | 13                 | 11                       | 9                  |
+| Avg Accuracy            | 100%                   | 81.25%             | 87.5%                    | 79.17%             |
+| Avg Costs               | $0.807255              | $0.153540          | $0.119638                | $0.008145          |
 
 The comparison results will be logged to the console, showing the performance of each model on the defined test cases.
 
