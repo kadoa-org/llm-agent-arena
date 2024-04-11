@@ -4,9 +4,10 @@
 
 
 # Claude vs GPT Agent Comparison
-Anthropic's recent announcement of [tool use (function calls)](https://docs.anthropic.com/claude/docs/tool-use) for Claude caught my attention, particularly their claim that "all models can handle correcting choosing a tool from 250+ tools provided the user query contains all necessary parameters for the intended tool with >90% accuracy."
+Anthropic's recent announcement of [tool use/function calls](https://docs.anthropic.com/claude/docs/tool-use) caught my attention, specifically their claim that the Claude models can correctly handle 250+ tools with >90% accuracy.
+I've been working with GPT function calling for a while and noticed that the recall for larger and more complex functions is quite low.
 
-As someone involved in developing agentic systems, I was intrigued. I've been working with GPT function calling for a while and know that its recall for larger and more complex functions is quite low. So, I decided to compare GPT and Claude's performance in using different tools for tasks like web scraping and browser automation.
+So, I decided to compare GPT and Claude's performance in using different tools for tasks like web scraping and browser automation.
 
 ## Features
 
