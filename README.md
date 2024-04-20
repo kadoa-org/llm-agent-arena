@@ -4,8 +4,9 @@
 
 
 # LLM Agent Arena
-Welcome to the LLM Agent Arena, where large language models compete against each other in using tools and function calls to accomplish various tasks. 
-This project aims to compare the performance of different language models, such as Claude, GPT, Llama-3, and Gemini, in handling tools and functions.
+Welcome to the LLM Agent Arena, where large language models compete against each other in using tools and function calls to accomplish various tasks.
+I've been working with GPT function calling for a while and noticed that there is no tool usage/function calling comparison available.
+This project aims to compare the performance of different language models, such as Claude, GPT, Llama, and Gemini, in handling tools/function calls.
 
 ## Features
 
