@@ -19,7 +19,7 @@ const groq = new Groq({apiKey: process.env.GROQ_API_KEY});
 
 const CLAUDE_MODEL = "claude-3-sonnet-20240229"
 const GPT_MODEL = "gpt-4-0125-preview"
-const GROQ_MODEL = "llama3-8b-8192"
+const GROQ_MODEL = "mixtral-8x7b-32768"
 
 const costConfig = {
     'gpt-4-0125-preview': {
@@ -38,6 +38,18 @@ const costConfig = {
         inputCostPer1MTokens: 3.00,
         outputCostPer1MTokens: 15.00,
     },
+    'llama-3-70b-8k': {
+        inputCostPer1MTokens: 0.59,
+        outputCostPer1MTokens: 0.79,
+    },
+    'mixtral-8x7b-32768': {
+        inputCostPer1MTokens: 0.27,
+        outputCostPer1MTokens: 0.27,
+    },
+    'llama-3-8b-8k': {
+        inputCostPer1MTokens: 0.05,
+        outputCostPer1MTokens: 0.10,
+    }
 };
 
 const testCases = [
@@ -171,53 +183,54 @@ async function testGroq(testCase) {
             model: GROQ_MODEL,
             messages: messages,
             tools: mappedTools,
-            tool_choice: "auto",
-            max_tokens: 4096,
+            tool_choice: "auto"
         });
-    } catch(e) {
+        console.log(`\nInitial Response:`);
+        console.log(`Content: ${JSON.stringify(response.choices[0].message, null, 2)}`);
+
+        while (response.choices[0].message.tool_calls) {
+            const toolCalls = response.choices[0].message.tool_calls;
+            totalInputTokens += response.usage.prompt_tokens;
+            totalOutputTokens += response.usage.completion_tokens;
+
+            for (const toolCall of toolCalls) {
+                const toolName = toolCall.function.name;
+                const toolInput = JSON.parse(toolCall.function.arguments);
+                results.push({type: "tool_use", name: toolName, input: toolInput});
+
+                const toolFunction = tools.find((tool) => tool.name === toolName).function;
+                const toolResult = await toolFunction(JSON.stringify(toolInput, null, 2));
+
+                messages.push({
+                    tool_call_id: toolCall.id,
+                    role: "tool",
+                    name: toolName,
+                    content: JSON.stringify(toolResult),
+                });
+            }
+
+            response = await groq.chat.completions.create({
+                model: GROQ_MODEL,
+                messages: messages,
+                tools: mappedTools,
+                tool_choice: "auto"
+            });
+
+            console.log(`\nResponse:`);
+            console.log(`Content: ${JSON.stringify(response.choices[0].message, null, 2)}`);
+        }
+
+        const finalResponse = response.choices[0].message.content;
+        console.log(`\nFinal Response: ${finalResponse}`);
+        results.push(finalResponse);
+
+        const cost = calculateCost(GROQ_MODEL, totalInputTokens, totalOutputTokens);
+
+        return {results, cost: cost.toFixed(6)};
+    } catch (e) {
         console.log(e)
     }
 
-    console.log(`\nInitial Response:`);
-    console.log(`Content: ${JSON.stringify(response.choices[0].message, null, 2)}`);
-
-    while (response.choices[0].message.tool_calls) {
-        const toolCalls = response.choices[0].message.tool_calls;
-        totalInputTokens += response.usage.input_tokens;
-        totalOutputTokens += response.usage.output_tokens;
-
-        for (const toolCall of toolCalls) {
-            const toolName = toolCall.function.name;
-            const toolInput = JSON.parse(toolCall.function.arguments);
-            results.push({ type: "tool_use", name: toolName, input: toolInput });
-
-            const toolFunction = tools.find((tool) => tool.name === toolName).function;
-            const toolResult = await toolFunction(JSON.stringify(toolInput, null, 2));
-
-            messages.push({
-                tool_call_id: toolCall.id,
-                role: "tool",
-                name: toolName,
-                content: JSON.stringify(toolResult),
-            });
-        }
-
-        response = await groq.chat.completions.create({
-            model: GROQ_MODEL,
-            messages: messages,
-        });
-
-        console.log(`\nResponse:`);
-        console.log(`Content: ${JSON.stringify(response.choices[0].message, null, 2)}`);
-    }
-
-    const finalResponse = response.choices[0].message.content;
-    console.log(`\nFinal Response: ${finalResponse}`);
-    results.push(finalResponse);
-
-    const cost = calculateCost(GROQ_MODEL, totalInputTokens, totalOutputTokens);
-
-    return { results, cost: cost.toFixed(6) };
 }
 
 async function testGPT(testCase) {
@@ -269,7 +282,7 @@ function calculateAccuracy(usedTools, expectedTools) {
 }
 
 function calculateCost(modelName, inputTokens, outputTokens) {
-    const { inputCostPer1MTokens, outputCostPer1MTokens } = costConfig[modelName];
+    const {inputCostPer1MTokens, outputCostPer1MTokens} = costConfig[modelName];
 
     const inputCost = (inputTokens / 1000000) * inputCostPer1MTokens;
     const outputCost = (outputTokens / 1000000) * outputCostPer1MTokens;
@@ -280,17 +293,32 @@ function calculateCost(modelName, inputTokens, outputTokens) {
 async function main() {
     const claudeResults = [];
     const gptResults = [];
+    const groqResutls = [];
 
     for (const testCase of testCases) {
         console.log(`\n${'='.repeat(50)}\nTest Case: ${testCase.query}\n${'='.repeat(50)}`);
 
+
+        const groqResult = await testGroq(testCase);
+        groqResutls.push(groqResult.results);
+        const groqCost = groqResult.cost;
+
+        const groqToolsUsed = groqResult.results.filter(c => c.type === "tool_use").map(toolUse => toolUse.name);
+        const groqToolsAccuracy = calculateAccuracy(groqToolsUsed, testCase.expectedTools);
+        const groqOutputAccuracy = groqToolsUsed[groqToolsUsed.length - 1] === testCase.expectedLastStep;
+
+        console.log(`\nGroq Evaluation:`);
+        console.log(`Model Used: ${GROQ_MODEL}`);
+        console.log(`Number of Tool Calls: ${groqToolsUsed.length}`);
+        console.log(`Tools Used: ${groqToolsUsed}`);
+        console.log(`Tools Accuracy: ${groqToolsAccuracy}`);
+        console.log(`Correct Result: ${groqOutputAccuracy}`);
+        console.log(`Cost: $${groqCost}`);
+
+
         const claudeResult = await testClaude(testCase);
         claudeResults.push(claudeResult.results);
         const claudeCost = claudeResult.cost;
-
-        const gptResult = await testGPT(testCase);
-        gptResults.push(gptResult.results);
-        const gptCost = gptResult.cost;
 
         // Evaluate Claude's performance
         const claudeToolsUsed = claudeResult.results.filter(c => c.type === "tool_use").map(toolUse => toolUse.name);
@@ -304,6 +332,11 @@ async function main() {
         console.log(`Tools Accuracy: ${claudeToolsAccuracy}`);
         console.log(`Correct Result: ${claudeOutputAccuracy}`);
         console.log(`Cost: $${claudeCost}`);
+
+        const gptResult = await testGPT(testCase);
+        gptResults.push(gptResult.results);
+        const gptCost = gptResult.cost;
+
 
         // Evaluate GPT's performance
         const gptToolsUsed = gptResult.results.flatMap(message =>
@@ -325,4 +358,5 @@ async function main() {
     await fs.writeFile('results/gpt_results.json', JSON.stringify(gptResults, null, 2));
     console.log('Results saved to JSON files.');
 }
+
 main();
