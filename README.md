@@ -92,11 +92,11 @@ You can add your own mock tools or edit the existing list of tools:
 
 ## Results
 
-| Metric                  | claude-3-opus-20240229 | gpt-4-0125-preview | claude-3-sonnet-20240229 | gpt-3.5-turbo-0125 |
-|-------------------------|------------------------|--------------------|--------------------------|--------------------|
-| Avg Tool Calls          | 16                     | 13                 | 11                       | 9                  |
-| Avg Accuracy            | 100%                   | 81.25%             | 87.5%                    | 79.17%             |
-| Avg Costs               | $0.807255              | $0.153540          | $0.119638                | $0.008145          |
+| Metric                  | claude-3-opus-20240229 | gpt-4-0125-preview | claude-3-sonnet-20240229 | gpt-3.5-turbo-0125 | llama3-70b-8192 |
+|-------------------------|------------------------|--------------------|--------------------------|--------------------|-----------------|
+| Avg Tool Calls          | 16                     | 13                 | 11                       | 9                  | 11              |
+| Avg Accuracy            | 100%                   | 81.25%             | 87.5%                    | 79.17%             | 75%             |
+| Avg Costs               | $0.807255              | $0.153540          | $0.119638                | $0.008145          | $0.003026       |
 
 The comparison results will be logged to the console, showing the performance of each model on the defined test cases.
 
