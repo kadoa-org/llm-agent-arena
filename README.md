@@ -16,9 +16,9 @@ This project aims to compare the performance of different language models, such 
 - Metrics to compare the performance of Claude and GPT function calling
 
 ## Supported Agents
-Claude
-GPT
-Groq Llama-3 8B
+- Claude
+- GPT
+- Groq Llama
 
 ## Setup
 
