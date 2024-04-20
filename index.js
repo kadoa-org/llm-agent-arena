@@ -321,8 +321,8 @@ async function main() {
         console.log(`Cost: $${gptCost}`);
     }
 
-    // await fs.writeFile('results/claude_results.json', JSON.stringify(claudeResults, null, 2));
-    // await fs.writeFile('results/gpt_results.json', JSON.stringify(gptResults, null, 2));
-    // console.log('Results saved to JSON files.');
+    await fs.writeFile('results/claude_results.json', JSON.stringify(claudeResults, null, 2));
+    await fs.writeFile('results/gpt_results.json', JSON.stringify(gptResults, null, 2));
+    console.log('Results saved to JSON files.');
 }
 main();
