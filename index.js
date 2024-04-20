@@ -19,7 +19,7 @@ const groq = new Groq({apiKey: process.env.GROQ_API_KEY});
 
 const CLAUDE_MODEL = "claude-3-sonnet-20240229"
 const GPT_MODEL = "gpt-4-0125-preview"
-const GROQ_MODEL = "mixtral-8x7b-32768"
+const GROQ_MODEL = "llama3-70b-8192"
 
 const costConfig = {
     'gpt-4-0125-preview': {
@@ -38,7 +38,7 @@ const costConfig = {
         inputCostPer1MTokens: 3.00,
         outputCostPer1MTokens: 15.00,
     },
-    'llama-3-70b-8k': {
+    'llama3-70b-8192': {
         inputCostPer1MTokens: 0.59,
         outputCostPer1MTokens: 0.79,
     },
@@ -46,7 +46,7 @@ const costConfig = {
         inputCostPer1MTokens: 0.27,
         outputCostPer1MTokens: 0.27,
     },
-    'llama-3-8b-8k': {
+    'llama3-8b-8192': {
         inputCostPer1MTokens: 0.05,
         outputCostPer1MTokens: 0.10,
     }
