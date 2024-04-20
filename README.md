@@ -3,11 +3,9 @@
 </p>
 
 
-# Claude vs GPT Agent Comparison
-Anthropic's recent announcement of [tool use/function calls](https://docs.anthropic.com/claude/docs/tool-use) caught my attention, specifically their claim that the Claude models can correctly handle 250+ tools with >90% accuracy.
-I've been working with GPT function calling for a while and noticed that the recall for larger and more complex functions is quite low.
-
-So, I decided to compare GPT and Claude's performance in using different tools for tasks like web scraping and browser automation.
+# LLM Agent Arena
+Welcome to the LLM Agent Arena, where large language models compete against each other in using tools and function calls to accomplish various tasks. 
+This project aims to compare the performance of different language models, such as Claude, GPT, Llama-3, and Gemini, in handling tools and functions.
 
 ## Features
 
@@ -15,6 +13,11 @@ So, I decided to compare GPT and Claude's performance in using different tools f
 - Dummy implementations of each tool for testing purposes
 - Test scenarios to evaluate the models' ability to select and use the appropriate tools
 - Metrics to compare the performance of Claude and GPT function calling
+
+## Supported Agents
+Claude
+GPT
+Groq Llama-3 8B
 
 ## Setup
 
@@ -117,7 +120,7 @@ Cost: $0.007377
 
 ## Contributing
 
-Feel free to contribute by adding more tools, test cases, or improving the evaluation metrics. Open a pull request with your changes.
+Feel free to contribute by adding more models, tools, test cases, or improving the evaluation metrics. Open a pull request with your changes.
 
 ## License
 
