@@ -38,6 +38,34 @@ This project aims to compare the performance of different language models, such 
    node index.js
    ```
 
+## Results & Leaderboard
+
+| Metric                  | claude-3-opus-20240229 | gpt-4-0125-preview | claude-3-sonnet-20240229 | gpt-3.5-turbo-0125 | llama3-70b-8192 |
+|-------------------------|------------------------|--------------------|--------------------------|--------------------|-----------------|
+| Avg Tool Calls          | 16                     | 13                 | 11                       | 9                  | 11              |
+| Avg Accuracy            | 100%                   | 81.25%             | 87.5%                    | 79.17%             | 75%             |
+| Avg Costs               | $0.807255              | $0.153540          | $0.119638                | $0.008145          | $0.003026       |
+
+The comparison results will be logged to the console, showing the performance of each model on the defined test cases.
+
+```
+ 
+Claude Evaluation:
+Model Used: claude-3-sonnet-20240229
+Number of Tool Calls: 12
+Tools Used: find_page,find_css_selector,find_css_selector,handle_login,find_page,navigate_to_url,extract_json,hover_element,extract_attribute,download_and_parse_pdf,extract_specs_table,upload_to_file_server
+Tools Accuracy: 0.875
+Correct Result: true
+Cost: $0.136581
+
+GPT Evaluation:
+Model Used: gpt-3.5-turbo-0125
+Number of Tool Calls: 9
+Tools Used: handle_login,navigate_to_url,extract_html,find_css_selector,find_page,hover_element,extract_attribute,download_and_parse_pdf,upload_to_file_server
+Tools Accuracy: 0.75
+Correct Result: true
+Cost: $0.007377
+   ```
 
 ## Test Scenarios
 You can customize the default test scenario or add your own:
@@ -88,36 +116,6 @@ You can add your own mock tools or edit the existing list of tools:
     }
 
 ```
-
-
-## Results
-
-| Metric                  | claude-3-opus-20240229 | gpt-4-0125-preview | claude-3-sonnet-20240229 | gpt-3.5-turbo-0125 | llama3-70b-8192 |
-|-------------------------|------------------------|--------------------|--------------------------|--------------------|-----------------|
-| Avg Tool Calls          | 16                     | 13                 | 11                       | 9                  | 11              |
-| Avg Accuracy            | 100%                   | 81.25%             | 87.5%                    | 79.17%             | 75%             |
-| Avg Costs               | $0.807255              | $0.153540          | $0.119638                | $0.008145          | $0.003026       |
-
-The comparison results will be logged to the console, showing the performance of each model on the defined test cases.
-
-```
- 
-Claude Evaluation:
-Model Used: claude-3-sonnet-20240229
-Number of Tool Calls: 12
-Tools Used: find_page,find_css_selector,find_css_selector,handle_login,find_page,navigate_to_url,extract_json,hover_element,extract_attribute,download_and_parse_pdf,extract_specs_table,upload_to_file_server
-Tools Accuracy: 0.875
-Correct Result: true
-Cost: $0.136581
-
-GPT Evaluation:
-Model Used: gpt-3.5-turbo-0125
-Number of Tool Calls: 9
-Tools Used: handle_login,navigate_to_url,extract_html,find_css_selector,find_page,hover_element,extract_attribute,download_and_parse_pdf,upload_to_file_server
-Tools Accuracy: 0.75
-Correct Result: true
-Cost: $0.007377
-   ```
 
 ## Contributing
 
