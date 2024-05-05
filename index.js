@@ -4,7 +4,7 @@ const tools = require("./tools");
 const Groq = require("groq-sdk");
 const {VertexAI} = require("@google-cloud/vertexai");
 const fs = require('fs').promises;
-
+const testScenarios = require('./testScenarios');
 
 const anthropic = new Anthropic({
     apiKey: process.env.ANTHROPIC_API_KEY,
@@ -58,28 +58,6 @@ const costConfig = {
     }
 };
 
-const testCases = [
-    {
-        "query": "You are an RPA bot. If you're missing a CSS selector, you need to call the find_selector tool by providing the description. To find a specific webpage by description, call the find_page tool. Here is your task: Log in to https://example.com using the provided credentials. Navigate to the 'Products' page and extract the names and prices of all products that are currently in stock. For each product, check if there is a detailed specification PDF available by hovering over the 'Info' button and extracting the link. If a PDF is available, download it and extract the table of technical specifications. Finally, upload the parsed technical specifications to the file server. After the successful upload, you're finished and don't need to call any other tools.",
-        "expectedTools": [
-            "handle_login",
-            "navigate_to_url",
-            "extract_text",
-            "hover_element",
-            "extract_attribute",
-            "download_and_parse_pdf",
-            "extract_specs_table",
-            "upload_to_file_server"
-        ],
-        "expectedLastStep": "upload_to_file_server",
-        "parameters": {
-            "login_url": "https://example.com/login",
-            "submit_selector": "#login-button",
-            "username": "testuser",
-            "password": "testpassword"
-        }
-    }
-];
 
 async function testClaude(testCase) {
     const results = []
@@ -390,90 +368,53 @@ function calculateCost(modelName, inputTokens, outputTokens) {
 }
 
 async function main() {
-    const claudeResults = [];
-    const gptResults = [];
-    const groqResutls = [];
-    const geminiResults = [];
+    const modelResults = {
+        claude: [],
+        gpt: [],
+        groq: [],
+        gemini: [],
+    };
 
-    for (const testCase of testCases) {
+    for (const testCase of testScenarios) {
         console.log(`\n${'='.repeat(50)}\nTest Case: ${testCase.query}\n${'='.repeat(50)}`);
 
+        const models = [
+            { name: 'gpt', test: testGPT, model: GPT_MODEL },
+            { name: 'groq', test: testGroq, model: GROQ_MODEL },
+            { name: 'gemini', test: testGemini, model: GEMINI_MODEL },
+            { name: 'claude', test: testClaude, model: CLAUDE_MODEL },
+        ];
 
-        const groqResult = await testGroq(testCase);
-        groqResutls.push(groqResult.results);
-        const groqCost = groqResult.cost;
+        for (const { name, test, model } of models) {
+            const result = await test(testCase);
+            modelResults[name].push(result.results);
+            const cost = result.cost;
 
-        const groqToolsUsed = groqResult.results.filter(c => c.type === "tool_use").map(toolUse => toolUse.name);
-        const groqToolsAccuracy = calculateAccuracy(groqToolsUsed, testCase.expectedTools);
-        const groqOutputAccuracy = groqToolsUsed[groqToolsUsed.length - 1] === testCase.expectedLastStep;
+            let toolsUsed;
+            if (name === "gpt") {
+                toolsUsed = result.results.flatMap(message =>
+                    message.tool_calls ? message.tool_calls.map(toolCall => toolCall.function.name) : []
+                );
+            } else {
+                 toolsUsed = result.results.filter(c => c.type === "tool_use").map(toolUse => toolUse.name);
 
-        console.log(`\nGroq Evaluation:`);
-        console.log(`Model Used: ${GROQ_MODEL}`);
-        console.log(`Number of Tool Calls: ${groqToolsUsed.length}`);
-        console.log(`Tools Used: ${groqToolsUsed}`);
-        console.log(`Tools Accuracy: ${groqToolsAccuracy}`);
-        console.log(`Correct Result: ${groqOutputAccuracy}`);
-        console.log(`Cost: $${groqCost}`);
+            }
+            const toolsAccuracy = calculateAccuracy(toolsUsed, testCase.expectedTools);
+            const outputAccuracy = toolsUsed[toolsUsed.length - 1] === testCase.expectedLastStep;
 
-
-        const geminiResult = await testGemini(testCase);
-        geminiResults.push(geminiResult.results);
-        const vertexCost = geminiResult.cost;
-
-        const geminiToolsUsed = geminiResult.results.filter(c => c.type === "tool_use").map(toolUse => toolUse.name);
-        const geminiToolsAccuracy = calculateAccuracy(geminiToolsUsed, testCase.expectedTools);
-        const geminiOutputAccuracy = geminiToolsUsed[geminiToolsUsed.length - 1] === testCase.expectedLastStep;
-
-        console.log(`\nGemini Evaluation:`);
-        console.log(`Model Used: ${GEMINI_MODEL}`);
-        console.log(`Number of Tool Calls: ${geminiToolsUsed.length}`);
-        console.log(`Tools Used: ${geminiToolsUsed}`);
-        console.log(`Tools Accuracy: ${geminiToolsAccuracy}`);
-        console.log(`Correct Result: ${geminiOutputAccuracy}`);
-        console.log(`Cost: $${vertexCost}`);
-
-
-        const claudeResult = await testClaude(testCase);
-        claudeResults.push(claudeResult.results);
-        const claudeCost = claudeResult.cost;
-
-        // Evaluate Claude's performance
-        const claudeToolsUsed = claudeResult.results.filter(c => c.type === "tool_use").map(toolUse => toolUse.name);
-        const claudeToolsAccuracy = calculateAccuracy(claudeToolsUsed, testCase.expectedTools);
-        const claudeOutputAccuracy = claudeToolsUsed[claudeToolsUsed.length - 1] === testCase.expectedLastStep;
-
-        console.log(`\nClaude Evaluation:`);
-        console.log(`Model Used: ${CLAUDE_MODEL}`);
-        console.log(`Number of Tool Calls: ${claudeToolsUsed.length}`);
-        console.log(`Tools Used: ${claudeToolsUsed}`);
-        console.log(`Tools Accuracy: ${claudeToolsAccuracy}`);
-        console.log(`Correct Result: ${claudeOutputAccuracy}`);
-        console.log(`Cost: $${claudeCost}`);
-
-        const gptResult = await testGPT(testCase);
-        gptResults.push(gptResult.results);
-        const gptCost = gptResult.cost;
-
-
-        // Evaluate GPT's performance
-        const gptToolsUsed = gptResult.results.flatMap(message =>
-            message.tool_calls ? message.tool_calls.map(toolCall => toolCall.function.name) : []
-        );
-        const gptToolsAccuracy = calculateAccuracy(gptToolsUsed, testCase.expectedTools);
-        const gptOutputAccuracy = gptToolsUsed[gptToolsUsed.length - 1] === testCase.expectedLastStep;
-
-        console.log(`\nGPT Evaluation:`);
-        console.log(`Model Used: ${GPT_MODEL}`);
-        console.log(`Number of Tool Calls: ${gptToolsUsed.length}`);
-        console.log(`Tools Used: ${gptToolsUsed}`);
-        console.log(`Tools Accuracy: ${gptToolsAccuracy}`);
-        console.log(`Correct Result: ${gptOutputAccuracy}`);
-        console.log(`Cost: $${gptCost}`);
+            console.log(`\n${name.charAt(0).toUpperCase() + name.slice(1)} Evaluation:`);
+            console.log(`Model Used: ${model}`);
+            console.log(`Number of Tool Calls: ${toolsUsed.length}`);
+            console.log(`Tools Used: ${toolsUsed}`);
+            console.log(`Tools Accuracy: ${toolsAccuracy}`);
+            console.log(`Correct Result: ${outputAccuracy}`);
+            console.log(`Cost: $${cost}`);
+        }
     }
 
-    await fs.writeFile('results/claude_results.json', JSON.stringify(claudeResults, null, 2));
-    await fs.writeFile('results/gpt_results.json', JSON.stringify(gptResults, null, 2));
+    for (const [name, results] of Object.entries(modelResults)) {
+        await fs.writeFile(`results/${name}_results.json`, JSON.stringify(results, null, 2));
+    }
     console.log('Results saved to JSON files.');
 }
-
 main();

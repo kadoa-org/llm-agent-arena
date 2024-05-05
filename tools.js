@@ -73,7 +73,7 @@ module.exports = [
         "function": async function (args) {
             console.log(`Extracting text from ${args}`);
             // Simulate text extraction
-            return "Product1: $23, Product2: $23, Product3: $232";
+            return "Product1: $23, Product2: $23, Product3: $232, Product4: $234, Product5: $235";
         }
     },
     {
