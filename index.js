@@ -60,7 +60,7 @@ const costConfig = {
 
 const testCases = [
     {
-        "query": "You are an RPA bot. If you're missing a CSS selector, you need to call the find_selector tool by providing the description. To find a specific webpage by description, call the find_page tool. Here is your task: Log in to https://example.com using the provided credentials. Navigate to the 'Products' page and extract the names and prices of all products that are currently in stock. For each product, check if there is a detailed specification PDF available by hovering over the 'Info' button and extracting the link. If a PDF is available, download it and extract the table of technical specifications. Finally, upload the parsed technical specifications to the file server.",
+        "query": "You are an RPA bot. If you're missing a CSS selector, you need to call the find_selector tool by providing the description. To find a specific webpage by description, call the find_page tool. Here is your task: Log in to https://example.com using the provided credentials. Navigate to the 'Products' page and extract the names and prices of all products that are currently in stock. For each product, check if there is a detailed specification PDF available by hovering over the 'Info' button and extracting the link. If a PDF is available, download it and extract the table of technical specifications. Finally, upload the parsed technical specifications to the file server. After the successful upload, you're finished and don't need to call any other tools.",
         "expectedTools": [
             "handle_login",
             "navigate_to_url",
@@ -399,23 +399,6 @@ async function main() {
         console.log(`\n${'='.repeat(50)}\nTest Case: ${testCase.query}\n${'='.repeat(50)}`);
 
 
-        const geminiResult = await testGemini(testCase);
-        geminiResults.push(geminiResult.results);
-        const vertexCost = geminiResult.cost;
-
-        const geminiToolsUsed = geminiResult.results.filter(c => c.type === "tool_use").map(toolUse => toolUse.name);
-        const geminiToolsAccuracy = calculateAccuracy(geminiToolsUsed, testCase.expectedTools);
-        const geminiOutputAccuracy = geminiToolsUsed[geminiToolsUsed.length - 1] === testCase.expectedLastStep;
-
-        console.log(`\nGemini Evaluation:`);
-        console.log(`Model Used: ${GEMINI_MODEL}`);
-        console.log(`Number of Tool Calls: ${geminiToolsUsed.length}`);
-        console.log(`Tools Used: ${geminiToolsUsed}`);
-        console.log(`Tools Accuracy: ${geminiToolsAccuracy}`);
-        console.log(`Correct Result: ${geminiOutputAccuracy}`);
-        console.log(`Cost: $${vertexCost}`);
-
-
         const groqResult = await testGroq(testCase);
         groqResutls.push(groqResult.results);
         const groqCost = groqResult.cost;
@@ -431,6 +414,23 @@ async function main() {
         console.log(`Tools Accuracy: ${groqToolsAccuracy}`);
         console.log(`Correct Result: ${groqOutputAccuracy}`);
         console.log(`Cost: $${groqCost}`);
+
+
+        const geminiResult = await testGemini(testCase);
+        geminiResults.push(geminiResult.results);
+        const vertexCost = geminiResult.cost;
+
+        const geminiToolsUsed = geminiResult.results.filter(c => c.type === "tool_use").map(toolUse => toolUse.name);
+        const geminiToolsAccuracy = calculateAccuracy(geminiToolsUsed, testCase.expectedTools);
+        const geminiOutputAccuracy = geminiToolsUsed[geminiToolsUsed.length - 1] === testCase.expectedLastStep;
+
+        console.log(`\nGemini Evaluation:`);
+        console.log(`Model Used: ${GEMINI_MODEL}`);
+        console.log(`Number of Tool Calls: ${geminiToolsUsed.length}`);
+        console.log(`Tools Used: ${geminiToolsUsed}`);
+        console.log(`Tools Accuracy: ${geminiToolsAccuracy}`);
+        console.log(`Correct Result: ${geminiOutputAccuracy}`);
+        console.log(`Cost: $${vertexCost}`);
 
 
         const claudeResult = await testClaude(testCase);
