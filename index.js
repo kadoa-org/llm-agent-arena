@@ -2,6 +2,7 @@ const {Anthropic} = require('@anthropic-ai/sdk');
 const OpenAI = require("openai");
 const tools = require("./tools");
 const Groq = require("groq-sdk");
+const {VertexAI} = require("@google-cloud/vertexai");
 const fs = require('fs').promises;
 
 
@@ -20,6 +21,7 @@ const groq = new Groq({apiKey: process.env.GROQ_API_KEY});
 const CLAUDE_MODEL = "claude-3-sonnet-20240229"
 const GPT_MODEL = "gpt-4-0125-preview"
 const GROQ_MODEL = "llama3-70b-8192"
+const GEMINI_MODEL = "gemini-1.5-pro-preview-0409"
 
 const costConfig = {
     'gpt-4-0125-preview': {
@@ -37,6 +39,10 @@ const costConfig = {
     'claude-3-sonnet-20240229': {
         inputCostPer1MTokens: 3.00,
         outputCostPer1MTokens: 15.00,
+    },
+    'gemini-1.5-pro-preview-0409': {
+        inputCostPer1MTokens: 2.50,
+        outputCostPer1MTokens: 7.50,
     },
     'llama3-70b-8192': {
         inputCostPer1MTokens: 0.59,
@@ -275,6 +281,99 @@ async function testGPT(testCase) {
     };
 }
 
+async function testGemini(
+    testCase,
+    projectId = process.env.GOOGLE_PROJECT_ID,
+    location = 'us-central1',
+    model = GEMINI_MODEL,
+) {
+    // Initialize Vertex with your Cloud project and location
+    const vertexAI = new VertexAI({
+        project: projectId,
+        location: location,
+        googleAuthOptions: {keyFilename: "application_default_credentials.json"}
+    });
+    const mappedTools = tools.map((tool) => ({
+        name: tool.name,
+        description: tool.description,
+        parameters: {
+            type: tool.input_schema.type.toUpperCase(),
+            properties: Object.entries(tool.input_schema.properties).reduce((acc, [key, value]) => {
+                acc[key] = {...value, type: value.type.toUpperCase()};
+                return acc;
+            }, {}),
+
+        }
+    }));
+    const functionDeclarations = [
+        {
+            functionDeclarations: mappedTools,
+        },
+    ];
+    const functionResponseParts = [];
+    const results = [];
+
+    // Instantiate the model
+    const geminiModel = vertexAI.getGenerativeModel({
+        model: model,
+    });
+
+    const request = {
+        contents: [
+            {role: 'user', parts: [{text: testCase.query}]},
+        ],
+        tools: functionDeclarations,
+    };
+    let result = await geminiModel.generateContent(request);
+    const response = result.response;
+    let functionCallPart = response.candidates[0].content.parts.find(part => part.functionCall);
+    let functionCall = functionCallPart?.functionCall;
+    let functionName = functionCall?.name;
+
+    let totalInputTokens = 0;
+    let totalOutputTokens = 0;
+
+    while (functionName) {
+        //while function calls, loop over it
+        const toolFunction = tools.find((tool) => tool.name === functionName).function;
+        const toolResult = await toolFunction(JSON.stringify(functionCall?.args, null, 2));
+        functionResponseParts.push(
+            {
+                functionResponse: {
+                    name: functionName,
+                    response: {name: functionName, content: toolResult},
+                },
+            },
+        );
+        results.push({type: "tool_use", name: functionName, input: functionCall?.args});
+
+        const req2 = {
+            contents: [
+                {role: 'user', parts: [{text: testCase.query}]},
+                result.response.candidates[0].content,
+                {role: 'user', parts: functionResponseParts},
+            ],
+            tools: functionDeclarations,
+        };
+
+        result = await geminiModel.generateContent(req2);
+        functionCallPart = result.response.candidates[0].content.parts.find(part => part.functionCall);
+        functionCall = functionCallPart?.functionCall;
+        functionName = functionCall?.name;
+
+        totalInputTokens += result.response.usageMetadata.promptTokenCount;
+        totalOutputTokens += result.response.usageMetadata.candidatesTokenCount;
+
+        console.log(response);
+    }
+
+    const finalResponse = result.response.candidates[0].content.parts.find(part => part.text)?.text;
+    results.push(finalResponse);
+
+    const cost = calculateCost(model, totalInputTokens, totalOutputTokens);
+    return {results, cost: cost.toFixed(6)};
+}
+
 function calculateAccuracy(usedTools, expectedTools) {
     const uniqueUsedTools = [...new Set(usedTools)];
     const correctTools = uniqueUsedTools.filter(tool => expectedTools.includes(tool));
@@ -294,9 +393,27 @@ async function main() {
     const claudeResults = [];
     const gptResults = [];
     const groqResutls = [];
+    const geminiResults = [];
 
     for (const testCase of testCases) {
         console.log(`\n${'='.repeat(50)}\nTest Case: ${testCase.query}\n${'='.repeat(50)}`);
+
+
+        const geminiResult = await testGemini(testCase);
+        geminiResults.push(geminiResult.results);
+        const vertexCost = geminiResult.cost;
+
+        const geminiToolsUsed = geminiResult.results.filter(c => c.type === "tool_use").map(toolUse => toolUse.name);
+        const geminiToolsAccuracy = calculateAccuracy(geminiToolsUsed, testCase.expectedTools);
+        const geminiOutputAccuracy = geminiToolsUsed[geminiToolsUsed.length - 1] === testCase.expectedLastStep;
+
+        console.log(`\nGemini Evaluation:`);
+        console.log(`Model Used: ${GEMINI_MODEL}`);
+        console.log(`Number of Tool Calls: ${geminiToolsUsed.length}`);
+        console.log(`Tools Used: ${geminiToolsUsed}`);
+        console.log(`Tools Accuracy: ${geminiToolsAccuracy}`);
+        console.log(`Correct Result: ${geminiOutputAccuracy}`);
+        console.log(`Cost: $${vertexCost}`);
 
 
         const groqResult = await testGroq(testCase);
