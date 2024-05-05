@@ -458,7 +458,7 @@ module.exports = [
         },
         "function": async function (args) {
             console.log(`Finding selector ${args}`);
-            return "#sdf123"
+            return "#selector-" + Math.floor(Math.random() * 900) + 100
         }
     },
     {
