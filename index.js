@@ -66,6 +66,10 @@ async function testClaude(testCase) {
 
     let messages = [
         {
+            role: "system",
+            content: "You are an RPA bot that uses the provided tools to automate browser and web scraping tasks.",
+        },
+        {
             "role": "user",
             "content": `${testCase.query}\n\nAdditional Parameters:\n${JSON.stringify(testCase.parameters, null, 2)}`
         }
@@ -145,7 +149,7 @@ async function testGroq(testCase) {
     const messages = [
         {
             role: "system",
-            content: "You are a function calling LLM that uses the data extracted from the provided tools to answer questions and perform tasks.",
+            content: "You are an RPA bot that uses the provided tools to automate browser and web scraping tasks.",
         },
         {
             role: "user",
@@ -234,10 +238,15 @@ async function testGPT(testCase) {
     const runner = openai.beta.chat.completions
         .runTools({
             model: GPT_MODEL,
-            messages: [{
-                role: 'user',
-                content: `${testCase.query}\n\nAdditional Parameters:\n${JSON.stringify(testCase.parameters, null, 2)}`
-            }],
+            messages: [
+                {
+                    role: "system",
+                    content: "You are an RPA bot that uses the provided tools to automate browser and web scraping tasks.",
+                },
+                {
+                    role: 'user',
+                    content: `${testCase.query}\n\nAdditional Parameters:\n${JSON.stringify(testCase.parameters, null, 2)}`
+                }],
             tools: mappedTools,
         })
         .on('message', (message) => {
@@ -335,6 +344,7 @@ async function testGemini(
         };
 
         result = await geminiModel.generateContent(req2);
+        console.log(result.response.candidates[0].content)
         functionCallPart = result.response.candidates[0].content.parts.find(part => part.functionCall);
         functionCall = functionCallPart?.functionCall;
         functionName = functionCall?.name;
@@ -379,13 +389,13 @@ async function main() {
         console.log(`\n${'='.repeat(50)}\nTest Case: ${testCase.query}\n${'='.repeat(50)}`);
 
         const models = [
-            { name: 'gpt', test: testGPT, model: GPT_MODEL },
-            { name: 'groq', test: testGroq, model: GROQ_MODEL },
-            { name: 'gemini', test: testGemini, model: GEMINI_MODEL },
-            { name: 'claude', test: testClaude, model: CLAUDE_MODEL },
+            {name: 'gemini', test: testGemini, model: GEMINI_MODEL},
+            {name: 'gpt', test: testGPT, model: GPT_MODEL},
+            {name: 'groq', test: testGroq, model: GROQ_MODEL},
+            {name: 'claude', test: testClaude, model: CLAUDE_MODEL},
         ];
 
-        for (const { name, test, model } of models) {
+        for (const {name, test, model} of models) {
             const result = await test(testCase);
             modelResults[name].push(result.results);
             const cost = result.cost;
@@ -396,7 +406,7 @@ async function main() {
                     message.tool_calls ? message.tool_calls.map(toolCall => toolCall.function.name) : []
                 );
             } else {
-                 toolsUsed = result.results.filter(c => c.type === "tool_use").map(toolUse => toolUse.name);
+                toolsUsed = result.results.filter(c => c.type === "tool_use").map(toolUse => toolUse.name);
 
             }
             const toolsAccuracy = calculateAccuracy(toolsUsed, testCase.expectedTools);
@@ -417,4 +427,5 @@ async function main() {
     }
     console.log('Results saved to JSON files.');
 }
+
 main();
