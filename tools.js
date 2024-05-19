@@ -41,12 +41,12 @@ module.exports = [
         "input_schema": {
             "type": "object",
             "properties": {
-                "description": {
+                "target": {
                     "type": "string",
                     "description": "short description of the element to click"
                 }
             },
-            "required": ["description"]
+            "required": ["target"]
         },
         "function": async function (args) {
             console.log(`Clicking element ${args}`);
