@@ -23,16 +23,12 @@ module.exports = [
         "input_schema": {
             "type": "object",
             "properties": {
-                "form_selector": {
-                    "type": "string",
-                    "description": "The CSS selector for the form, e.g., #search-form"
-                },
                 "fields": {
                     "type": "object",
                     "description": "The form fields to fill out, as key-value pairs"
                 }
             },
-            "required": ["form_selector", "fields"]
+            "required": ["fields"]
         },
         "function": async function (args) {
             console.log(`Filling form ${args}`);
@@ -45,12 +41,12 @@ module.exports = [
         "input_schema": {
             "type": "object",
             "properties": {
-                "selector": {
+                "description": {
                     "type": "string",
-                    "description": "The CSS selector for the element to click, e.g., #submit-button"
+                    "description": "short description of the element to click"
                 }
             },
-            "required": ["selector"]
+            "required": ["description"]
         },
         "function": async function (args) {
             console.log(`Clicking element ${args}`);
@@ -58,22 +54,41 @@ module.exports = [
         }
     },
     {
-        "name": "extract_text",
-        "description": "Extract text content from the current web page.",
+        "name": "extract_profile_data",
+        "description": "Extract data from the profile page and returns it as JSON.",
         "input_schema": {
             "type": "object",
             "properties": {
-                "selector": {
+                "schema": {
                     "type": "string",
-                    "description": "The CSS selector for the element to extract text from, e.g., .article-body"
+                    "description": "JSON schema of the information to extract"
                 }
             },
-            "required": ["selector"]
+            "required": ["schema"]
         },
         "function": async function (args) {
             console.log(`Extracting text from ${args}`);
             // Simulate text extraction
-            return "Product1: $23, Product2: $23, Product3: $232, Product4: $234, Product5: $235";
+            return {username: "sam", name: "Sam Altman", "profilePicture": "https://example.com/profile/profile.png" };
+        }
+    },
+    {
+        "name": "extract_product_data",
+        "description": "Extract data from products and returns it as JSON.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "schema": {
+                    "type": "string",
+                    "description": "JSON schema of the information to extract"
+                }
+            },
+            "required": ["schema"]
+        },
+        "function": async function (args) {
+            console.log(`Extracting text from ${args}`);
+            // Simulate text extraction
+            return [{productName: "Product X", price: "$124", link: "https://example.com/product/productX"}, {productName: "Product Y", price: "$124", link: "https://example.com/product/productY"}, {productName: "Product Z", price: "$124", link: "https://example.com/product/productZ"}];
         }
     },
     {
@@ -166,26 +181,25 @@ module.exports = [
         }
     },
     {
-        "name": "extract_attribute",
-        "description": "Extract the value of an attribute from an element on the current web page.",
+        "name": "download_image",
+        "description": "Download an image from a given URL and save it with the specified filename.",
         "input_schema": {
             "type": "object",
             "properties": {
-                "selector": {
+                "url": {
                     "type": "string",
-                    "description": "The CSS selector for the element, e.g., #product-image"
+                    "description": "The URL of the image to download."
                 },
-                "attribute": {
-                    "type": "string",
-                    "description": "The name of the attribute to extract, e.g., src"
-                }
             },
-            "required": ["selector", "attribute"]
+            "required": ["url"]
         },
         "function": async function (args) {
-            console.log(`Extracting attribute ${args}`);
-            // Simulate attribute extraction
-            return "https://testsite.com/products/1232/specs.pdf";
+            console.log(`Downloading image from ${args}`);
+            return {
+                "filename": "product_image.png",
+                "size": 1241,
+                "success": true
+            };
         }
     },
     {
@@ -231,17 +245,53 @@ module.exports = [
         }
     },
     {
-        "name": "extract_specs_table",
-        "description": "Extract data from a PDF table",
+        "name": "upload_image_to_file_server",
+        "description": "Upload an image file to a file server",
         "input_schema": {
             "type": "object",
             "properties": {
-                "pdf_content": {
+                "content": {
                     "type": "string",
-                    "description": "The PDF content"
+                    "description": "The file content to upload"
                 }
             },
-            "required": ["pdf_content"]
+            "required": ["content"]
+        },
+        "function": async function (args) {
+            console.log(`Uploading file ${args}`);
+            return {success: true}
+        }
+    },
+    {
+        "name": "extract_image_url",
+        "description": "Extract an image URL based on the image position",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "position": {
+                    "type": "string",
+                    "description": "the position of the image on the page"
+                }
+            },
+            "required": ["position"]
+        },
+        "function": async function (args) {
+            console.log(`Uploading file ${args}`);
+            return {imageUrl: "https://example.com/product/productX/image.png"}
+        }
+    },
+    {
+        "name": "extract_specs_table",
+        "description": "Extract data from a specs table",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "headline": {
+                    "type": "string",
+                    "description": "specs section headline"
+                }
+            },
+            "required": ["headline"]
         },
         "function": async function (args) {
             console.log(`Extracting table data from ${args}`);
@@ -268,25 +318,6 @@ module.exports = [
         "function": async function (args) {
             console.log(`Handling pagination with next button ${args}`);
             return {success: true}
-        }
-    },
-    {
-        "name": "extract_json",
-        "description": "Extract JSON data from the current web page.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "selector": {
-                    "type": "string",
-                    "description": "The CSS selector for the element containing the JSON data, e.g., #json-data"
-                }
-            },
-            "required": ["selector"]
-        },
-        "function": async function (args) {
-            console.log(`Extracting JSON data from ${args}`);
-            // Simulate JSON extraction
-            return {key1: "value1", key2: "value2"};
         }
     },
     {
@@ -338,75 +369,6 @@ module.exports = [
         }
     },
     {
-        "name": "handle_login",
-        "description": "Log in to a website using provided credentials.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "url": {
-                    "type": "string",
-                    "description": "The URL of the login page, e.g., https://example.com/login"
-                },
-                "username_selector": {
-                    "type": "string",
-                    "description": "The CSS selector for the username input field, e.g., #username"
-                },
-                "password_selector": {
-                    "type": "string",
-                    "description": "The CSS selector for the password input field, e.g., #password"
-                },
-                "submit_selector": {
-                    "type": "string",
-                    "description": "The CSS selector for the login submit button, e.g., #login-button"
-                },
-                "username": {
-                    "type": "string",
-                    "description": "The username to log in with"
-                },
-                "password": {
-                    "type": "string",
-                    "description": "The password to log in with"
-                }
-            },
-            "required": ["url", "username_selector", "password_selector", "submit_selector", "username", "password"]
-        },
-        "function": async function (args) {
-            console.log(`Logging in at ${args}`);
-            return {success: true}
-        }
-    },
-    {
-        "name": "extract_html",
-        "description": "Extract the HTML source of the current web page.",
-        "input_schema": {
-            "type": "object",
-            "properties": {}
-        },
-        "function": async function () {
-            console.log("Extracting HTML source");
-            // Simulate HTML extraction
-            return "<html><body><p>Product 1: $123 (out of stock)</p><p>Product 2: $125 (in stock)</p></body></html>";
-        }
-    },
-    {
-        "name": "handle_alert",
-        "description": "Handle an alert dialog on the current web page.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "accept": {
-                    "type": "boolean",
-                    "description": "Whether to accept (true) or dismiss (false) the alert"
-                }
-            },
-            "required": ["accept"]
-        },
-        "function": async function (args) {
-            console.log(`Handling alert with accept=${args}`);
-            return {success: true}
-        }
-    },
-    {
         "name": "extract_metadata",
         "description": "Extract metadata from the current web page.",
         "input_schema": {
@@ -423,24 +385,6 @@ module.exports = [
             console.log(`Extracting metadata ${args}`);
             // Simulate metadata extraction
             return "dummy_metadata_value";
-        }
-    },
-    {
-        "name": "hover_element",
-        "description": "Hover over an element on the current web page.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "selector": {
-                    "type": "string",
-                    "description": "The CSS selector for the element to hover over, e.g., #menu-item"
-                }
-            },
-            "required": ["selector"]
-        },
-        "function": async function (args) {
-            console.log(`Hovering over element ${args}`);
-            return {success: true}
         }
     },
     {

@@ -19,14 +19,18 @@ const groq = new Groq({apiKey: process.env.GROQ_API_KEY});
 
 
 const CLAUDE_MODEL = "claude-3-sonnet-20240229"
-const GPT_MODEL = "gpt-4-0125-preview"
+const GPT_MODEL = "gpt-4o"
 const GROQ_MODEL = "llama3-70b-8192"
-const GEMINI_MODEL = "gemini-1.5-pro-preview-0409"
+const GEMINI_MODEL = "gemini-1.5-pro-preview-0514"
 
 const costConfig = {
     'gpt-4-0125-preview': {
         inputCostPer1MTokens: 10.00,
         outputCostPer1MTokens: 30.00,
+    },
+    'gpt-4o': {
+        inputCostPer1MTokens: 5.00,
+        outputCostPer1MTokens: 15.00,
     },
     'gpt-3.5-turbo-0125': {
         inputCostPer1MTokens: 0.50,
@@ -40,9 +44,13 @@ const costConfig = {
         inputCostPer1MTokens: 3.00,
         outputCostPer1MTokens: 15.00,
     },
-    'gemini-1.5-pro-preview-0409': {
-        inputCostPer1MTokens: 2.50,
-        outputCostPer1MTokens: 7.50,
+    'gemini-1.5-flash': {
+        inputCostPer1MTokens: 0.125,
+        outputCostPer1MTokens: 0.375,
+    },
+    'gemini-1.5-pro-preview-0514': {
+        inputCostPer1MTokens: 1.25,
+        outputCostPer1MTokens: 3.75,
     },
     'llama3-70b-8192': {
         inputCostPer1MTokens: 0.59,
@@ -66,12 +74,8 @@ async function testClaude(testCase) {
 
     let messages = [
         {
-            role: "system",
-            content: "You are an RPA bot that uses the provided tools to automate browser and web scraping tasks.",
-        },
-        {
             "role": "user",
-            "content": `${testCase.query}\n\nAdditional Parameters:\n${JSON.stringify(testCase.parameters, null, 2)}`
+            "content": `${testCase.query}`
         }
     ];
 
@@ -82,7 +86,7 @@ async function testClaude(testCase) {
             tools: tools,
             messages: messages
         },
-        {headers: {'anthropic-beta': 'tools-2024-04-04'}}
+        {headers: {'anthropic-beta': 'tools-2024-05-16'}}
     );
 
     console.log(`\nInitial Response:`);
@@ -90,27 +94,32 @@ async function testClaude(testCase) {
     console.log(`Content: ${JSON.stringify(response.content, null, 2)}`);
 
     while (response.stop_reason === "tool_use") {
-        const toolUse = response.content.find(block => block.type === "tool_use");
-        const toolName = toolUse.name;
-        const toolInput = toolUse.input;
-        totalInputTokens += response.usage.input_tokens;
-        totalOutputTokens += response.usage.output_tokens;
-        results.push(toolUse)
-        const toolFunction = tools.find(tool => tool.name === toolName).function;
-        const toolResult = await toolFunction(JSON.stringify(toolInput, null, 2));
+        const toolUses = response.content.filter(block => block.type === "tool_use");
+        const toolResultMessage = [];
+        for (const toolUse of toolUses) {
+            const toolName = toolUse.name;
+            const toolInput = toolUse.input;
+            totalInputTokens += response.usage.input_tokens;
+            totalOutputTokens += response.usage.output_tokens;
+            results.push(toolUse);
+
+            const toolFunction = tools.find(tool => tool.name === toolName).function;
+            const toolResult = await toolFunction(JSON.stringify(toolInput, null, 2));
+
+            toolResultMessage.push(
+                        {
+                            "type": "tool_result",
+                            "tool_use_id": toolUse.id,
+                            "content": JSON.stringify(toolResult),
+                        })
+        }
 
         messages = [
             ...messages,
             {"role": "assistant", "content": response.content},
             {
                 "role": "user",
-                "content": [
-                    {
-                        "type": "tool_result",
-                        "tool_use_id": toolUse.id,
-                        "content": JSON.stringify(toolResult),
-                    }
-                ],
+                "content": toolResultMessage,
             },
         ];
 
@@ -121,7 +130,7 @@ async function testClaude(testCase) {
                 tools: tools,
                 messages: messages
             },
-            {headers: {'anthropic-beta': 'tools-2024-04-04'}}
+            {headers: {'anthropic-beta': 'tools-2024-05-16'}}
         );
 
         console.log(`\nResponse:`);
@@ -153,7 +162,7 @@ async function testGroq(testCase) {
         },
         {
             role: "user",
-            content: `${testCase.query}\n\nAdditional Parameters:\n${JSON.stringify(testCase.parameters, null, 2)}`,
+            content: `${testCase.query}`,
         },
     ];
 
@@ -245,7 +254,7 @@ async function testGPT(testCase) {
                 },
                 {
                     role: 'user',
-                    content: `${testCase.query}\n\nAdditional Parameters:\n${JSON.stringify(testCase.parameters, null, 2)}`
+                    content: `${testCase.query}`
                 }],
             tools: mappedTools,
         })
@@ -324,6 +333,11 @@ async function testGemini(
         //while function calls, loop over it
         const toolFunction = tools.find((tool) => tool.name === functionName).function;
         const toolResult = await toolFunction(JSON.stringify(functionCall?.args, null, 2));
+        results.push({type: "tool_use", name: functionName, input: functionCall?.args});
+        if (functionName === testCase.expectedLastStep) {
+            //sometimes Gemini went into an infinite loop and started the task over and over again, quite dangerous!
+            break
+        }
         functionResponseParts.push(
             {
                 functionResponse: {
@@ -332,7 +346,6 @@ async function testGemini(
                 },
             },
         );
-        results.push({type: "tool_use", name: functionName, input: functionCall?.args});
 
         const req2 = {
             contents: [
@@ -363,8 +376,7 @@ async function testGemini(
 }
 
 function calculateAccuracy(usedTools, expectedTools) {
-    const uniqueUsedTools = [...new Set(usedTools)];
-    const correctTools = uniqueUsedTools.filter(tool => expectedTools.includes(tool));
+    const correctTools = usedTools.filter(tool => expectedTools.includes(tool));
     return correctTools.length / expectedTools.length;
 }
 
@@ -390,9 +402,8 @@ async function main() {
 
         const models = [
             {name: 'gemini', test: testGemini, model: GEMINI_MODEL},
-            {name: 'gpt', test: testGPT, model: GPT_MODEL},
-            {name: 'groq', test: testGroq, model: GROQ_MODEL},
             {name: 'claude', test: testClaude, model: CLAUDE_MODEL},
+            {name: 'gpt', test: testGPT, model: GPT_MODEL},
         ];
 
         for (const {name, test, model} of models) {
@@ -406,7 +417,7 @@ async function main() {
                     message.tool_calls ? message.tool_calls.map(toolCall => toolCall.function.name) : []
                 );
             } else {
-                toolsUsed = result.results.filter(c => c.type === "tool_use").map(toolUse => toolUse.name);
+                toolsUsed = result.results.filter(c => c && c.type === "tool_use").map(toolUse => toolUse.name);
 
             }
             const toolsAccuracy = calculateAccuracy(toolsUsed, testCase.expectedTools);

@@ -1,50 +1,52 @@
 module.exports = [
+/*    {
+        "query":
+            "Answer the user's request using relevant tools (if they are available). Before calling a tool, do some analysis. First, think about which of the provided tools is the relevant tool to answer the user's request. Second, go through each of the required parameters of the relevant tool and determine if the user has directly provided or given enough information to infer a value. When deciding if the parameter can be inferred, carefully consider all the context to see if it supports a specific value. If all of the required parameters are present or can be reasonably inferred, close the thinking tag and proceed with the tool call. BUT, if one of the values for a required parameter is missing, DO NOT invoke the function (not even with fillers for the missing params) and instead, ask the user to provide the missing parameters. DO NOT ask for more information on optional parameters if it is not provided." +
+            "Here is your task: " +
+            "1.) Navigate to https://example.com/login. Params: {'username': 'root', 'PW': 'root'}" +
+            "2.) Fill in the username and password fields with the provided credentials" +
+            "3.) Click the login button. Params: {'description': 'login button'}" +
+            "4.) After successful login, navigate to the user https://example.com/profile page. " +
+            "5.) Extract the user's name, email, and profile picture URL from the profile page. Params: {'schema': {'username': string, 'email': string, 'profilePicture': string }}" +
+            "6.) Finally, save the extracted user data to a JSON file and upload it to the file server. Don't call any other tools after this. You're finished." +
+            "DONE",
+        "expectedTools": [
+            "navigate_to_url",
+            "fill_form",
+            "click_element",
+            "navigate_to_url",
+            "extract_profile_data",
+            "upload_to_file_server"
+        ],
+        "expectedLastStep": "upload_to_file_server",
+        "level": "easy"
+    },*/
     {
         "query":
-            "Here is your task: 1.) Navigate to https://example.com/products. 2.) Extract the names and prices of the first 5 products on the page. " +
-            "3.) For each product, click on the 'More Info' link and extract the product specs from the details page. " +
-            "4.) Finally, save the extracted data (name, price, and description) for each product to a JSON file and upload it to the file server." +
-            "Rules: If you're missing a CSS selector, you need to call the find_selector tool by providing the description. " +
-            "To find a specific webpage by description, call the find_page tool.",
+            "Answer the user's request using relevant tools (if they are available). Before calling a tool, do some analysis. First, think about which of the provided tools is the relevant tool to answer the user's request. Second, go through each of the required parameters of the relevant tool and determine if the user has directly provided or given enough information to infer a value. When deciding if the parameter can be inferred, carefully consider all the context to see if it supports a specific value. If all of the required parameters are present or can be reasonably inferred, close the thinking tag and proceed with the tool call. BUT, if one of the values for a required parameter is missing, DO NOT invoke the function (not even with fillers for the missing params) and instead, ask the user to provide the missing parameters. DO NOT ask for more information on optional parameters if it is not provided." +
+            "Here is your task: " +
+            "1.) Navigate to https://example.com/products" +
+            "2.) Extract the names and prices of first product on the page. Params: {'schema': {'productName': string, 'price': string, 'link': string}}" +
+            "3.) For each product, use the link to navigate to the details page" +
+            "4.) On the product details page, click on the 'Specifications' collapsible. Params: {'headline': 'Product Specs'}" +
+            "5.) Extract the specs table" +
+            "6.) Upload specs JSON to the file server" +
+            "7.) Extract the product image URL. Params: {'position': 'Top Left'}" +
+            "8.) Download the product image" +
+            "9.) Upload image to the file server" +
+            "DONE",
         "expectedTools": [
             "navigate_to_url",
-            "extract_text",
-            "find_css_selector",
-            "click_element",
-            "extract_text",
-            "upload_to_file_server"
-        ],
-        "expectedLastStep": "upload_to_file_server",
-        "parameters": {
-            "products_url": "https://example.com/products",
-            "num_products": 5
-        },
-        "level": "medium"
-    },
-    {
-        "query": "Here is your task: 1) Log in to https://example.com using the provided credentials. " +
-            "2) Navigate to the 'Products' page and extract the names and prices of all products that are currently in stock. " +
-            "3) For each product, check if there is a detailed specification PDF available by clicking the 'Specs' button and extracting the link. " +
-            "4) If a PDF is available, download it and extract the table of technical specifications. " +
-            "5) Finally, upload the parsed technical specifications to the file server. After the successful upload, you're finished and don't need to call any other tools." +
-            "Rules: If you're missing a CSS selector, you need to call the find_selector tool by providing the description. " +
-            "To find a specific webpage by description, call the find_page tool.",
-        "expectedTools": [
-            "handle_login",
+            "extract_product_data",
             "navigate_to_url",
-            "extract_text",
             "click_element",
-            "extract_attribute",
-            "download_and_parse_pdf",
             "extract_specs_table",
-            "upload_to_file_server"
+            "upload_to_file_server",
+            "extract_image_url",
+            "download_image",
+            "upload_image_to_file_server"
         ],
-        "expectedLastStep": "upload_to_file_server",
-        "parameters": {
-            "login_url": "https://example.com/login",
-            "username": "testuser",
-            "password": "testpassword"
-        },
-        "level": "hard"
+        "expectedLastStep": "upload_image_to_file_server",
+        "level": "medium"
     }
 ];

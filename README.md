@@ -15,29 +15,7 @@ This project aims to compare the performance of different language models, such 
 - Test scenarios to evaluate the models' ability to select and use the appropriate tools
 - Metrics to compare the performance of Claude and GPT function calling
 
-## Supported Agents
-- Claude
-- GPT
-- Groq Llama
-- Gemini
 
-## Setup
-
-1. Install the required dependencies:
-   ```
-   npm install
-   ```
-
-2. Set your Anthropic and OpenAI API keys as environment variables:
-   ```
-   export ANTHROPIC_API_KEY=your_anthropic_api_key
-   export OPENAI_API_KEY=your_openai_api_key
-   ```
-
-3. Run the comparison:
-   ```
-   node index.js
-   ```
 
 ## Results & Leaderboard
 
@@ -45,13 +23,14 @@ This project aims to compare the performance of different language models, such 
 ### Scenario 1: Hard Task
 
 
-| Model                   | Avg Tool Calls | Avg Accuracy | Avg Costs   |
-|-------------------------|----------------|--------------|-------------|
-| claude-3-opus-20240229  | 16             | 100%         | $0.807255   |
-| gpt-4-0125-preview      | 13             | 81.25%       | $0.153540   |
-| claude-3-sonnet-20240229| 11             | 87.5%        | $0.119638   |
-| gpt-3.5-turbo-0125      | 9              | 79.17%       | $0.008145   |
-| llama3-70b-8192         | 9              | 78.13%       | $0.005027   |
+| Model                         | Completion Rate | Accuracy | Avg Costs   | 
+|-------------------------------|-----------------|----------|-------------|
+| claude-3-opus-20240229        | 100%            | 100%     | $0.807255   | 
+| gemini-1.5-pro-preview-0514   | 100%            | 100%     | $0.807255   |
+| gpt-4-0125-preview            | 100%            | 81.25%   | $0.153540   |
+| claude-3-sonnet-20240229      | 90%             | 87.5%    | $0.119638   | 
+| gpt-3.5-turbo-0125            | 75%             | 79.17%   | $0.008145   | 
+| llama3-70b-8192               | 75%             | 78.13%   | $0.005027   | 
 
 
 ### Scenario 2: Easy Task
@@ -107,6 +86,26 @@ You can add your own mock tools or edit the existing list of tools:
     }
 
 ```
+
+## Setup
+
+1. Install the required dependencies:
+   ```
+   npm install
+   ```
+
+2. Set your Anthropic and OpenAI API keys as environment variables:
+   ```
+   export ANTHROPIC_API_KEY=your_anthropic_api_key
+   export OPENAI_API_KEY=your_openai_api_key
+   ```
+
+3. Run the comparison:
+   ```
+   node index.js
+   ```
+
+
 
 ## Contributing
 
