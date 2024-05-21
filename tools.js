@@ -388,24 +388,6 @@ module.exports = [
         }
     },
     {
-        "name": "find_css_selector",
-        "description": "Find CSS selector for a description of an element",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "element": {
-                    "type": "string",
-                    "description": "the element to find, e.g. login button"
-                }
-            },
-            "required": ["element"]
-        },
-        "function": async function (args) {
-            console.log(`Finding selector ${args}`);
-            return "#selector-" + Math.floor(Math.random() * 900) + 100
-        }
-    },
-    {
         "name": "find_page",
         "description": "Find a website URL based on the description",
         "input_schema": {

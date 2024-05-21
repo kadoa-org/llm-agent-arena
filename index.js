@@ -4,7 +4,7 @@ const tools = require("./tools");
 const Groq = require("groq-sdk");
 const {VertexAI} = require("@google-cloud/vertexai");
 const fs = require('fs').promises;
-const testScenarios = require('./testScenarios');
+const tasks = require('./tasks');
 
 const anthropic = new Anthropic({
     apiKey: process.env.ANTHROPIC_API_KEY,
@@ -18,8 +18,8 @@ const openai = new OpenAI({
 const groq = new Groq({apiKey: process.env.GROQ_API_KEY});
 
 
-const CLAUDE_MODEL = "claude-3-sonnet-20240229"
-const GPT_MODEL = "gpt-4o"
+const CLAUDE_MODEL = "claude-3-opus-20240229"
+const GPT_MODEL = "gpt-3.5-turbo-0125"
 const GROQ_MODEL = "llama3-70b-8192"
 const GEMINI_MODEL = "gemini-1.5-pro-preview-0514"
 
@@ -397,13 +397,14 @@ async function main() {
         gemini: [],
     };
 
-    for (const testCase of testScenarios) {
+    for (const testCase of tasks) {
         console.log(`\n${'='.repeat(50)}\nTest Case: ${testCase.query}\n${'='.repeat(50)}`);
 
         const models = [
-            {name: 'gemini', test: testGemini, model: GEMINI_MODEL},
             {name: 'claude', test: testClaude, model: CLAUDE_MODEL},
+            {name: 'groq', test: testGroq, model: GROQ_MODEL},
             {name: 'gpt', test: testGPT, model: GPT_MODEL},
+            {name: 'gemini', test: testGemini, model: GEMINI_MODEL},
         ];
 
         for (const {name, test, model} of models) {

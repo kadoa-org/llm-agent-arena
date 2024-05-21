@@ -4,62 +4,63 @@
 
 
 # LLM Agent Arena
-Welcome to the LLM Agent Arena, where large language models compete against each other in using tools and function calls to accomplish various tasks.
-I've been working with GPT function calling for a while and noticed that there is no tool usage/function calling comparison available.
-This project aims to compare the performance of different language models, such as Claude, GPT, Llama, and Gemini, in handling complex chains of tool calls.
+Welcome to the LLM Agent Arena, a benchmark to evaluate and compare function calling/tool usage across different LLMs.
 
 ## Features
 
-- A set of predefined tools for web scraping and browser automation
+- A set of predefined tools for a specific test task
 - Dummy implementations of each tool for testing purposes
 - Test scenarios to evaluate the models' ability to select and use the appropriate tools
-- Metrics to compare the performance of Claude and GPT function calling
+- Metrics to compare the performance of function calling
 
 
 
 ## Results & Leaderboard
 
 
-### Scenario 1: Hard Task
+| Model                       | Completion Rate | Accuracy | Avg Costs   | 
+|-----------------------------|-----------------|----------|-------------|
+| claude-3-opus-20240229      | 100%            | 100%     | $0.807255   | 
+| gemini-1.5-pro-preview-0514 | 100%            | 100%     | $0.012401   |
+| gpt-4o                      | 100%            | 100%     | $0.082180   |
+| claude-3-sonnet-20240229    | 100%            | 100%     | $0.094014   | 
+| gpt-3.5-turbo-0125          | 100%            | 77.7%    | $0.004343   | 
+| llama3-70b-8192*            | 50%             | 78.13%   | $0.010536   | 
 
-
-| Model                         | Completion Rate | Accuracy | Avg Costs   | 
-|-------------------------------|-----------------|----------|-------------|
-| claude-3-opus-20240229        | 100%            | 100%     | $0.807255   | 
-| gemini-1.5-pro-preview-0514   | 100%            | 100%     | $0.807255   |
-| gpt-4-0125-preview            | 100%            | 81.25%   | $0.153540   |
-| claude-3-sonnet-20240229      | 90%             | 87.5%    | $0.119638   | 
-| gpt-3.5-turbo-0125            | 75%             | 79.17%   | $0.008145   | 
-| llama3-70b-8192               | 75%             | 78.13%   | $0.005027   | 
-
-
-### Scenario 2: Easy Task
-
-Coming soon...
+* currently in beta and not production ready yet on Groq Cloud
 
 ## Test Scenarios
 You can customize the default test scenario or add your own:
 ```
-    {
-        "query": "You are an RPA bot. If you're missing a CSS selector, you need to call the find_selector tool by providing the description. To find a specific webpage by description, call the find_page tool. Here is your task: Log in to https://example.com using the provided credentials. Navigate to the 'Products' page and extract the names and prices of all products that are currently in stock. For each product, check if there is a detailed specification PDF available by hovering over the 'Info' button and extracting the link. If a PDF is available, download it and extract the table of technical specifications. Finally, upload the parsed technical specifications to the file server.",
+        {
+        "query":
+            "Answer the user's request using relevant tools (if they are available). Before calling a tool, do some analysis. First, think about which of the provided tools is the relevant tool to answer the user's request. Second, go through each of the required parameters of the relevant tool and determine if the user has directly provided or given enough information to infer a value. When deciding if the parameter can be inferred, carefully consider all the context to see if it supports a specific value. If all of the required parameters are present or can be reasonably inferred, close the thinking tag and proceed with the tool call. BUT, if one of the values for a required parameter is missing, DO NOT invoke the function (not even with fillers for the missing params) and instead, ask the user to provide the missing parameters. DO NOT ask for more information on optional parameters if it is not provided." +
+            "Here is your task: " +
+            "1.) Navigate to https://example.com/products" +
+            "2.) Extract the names and prices of all the products on the page. Params: {'schema': {'productName': string, 'price': string, 'link': string}}" +
+            "3.) For the first product, use the link to navigate to the details page" +
+            "4.) On the product details page, click on the 'Specifications' collapsible. Params: {'headline': 'Product Specs'}" +
+            "5.) Extract the specs table" +
+            "6.) Upload specs JSON to the file server" +
+            "7.) Extract the product image URL. Params: {'position': 'Top Left'}" +
+            "8.) Download the product image" +
+            "9.) Upload image to the file server" +
+            "DONE",
         "expectedTools": [
-            "handle_login",
             "navigate_to_url",
-            "extract_text",
-            "hover_element",
-            "extract_attribute",
-            "download_and_parse_pdf",
+            "extract_product_data",
+            "navigate_to_url",
+            "click_element",
             "extract_specs_table",
-            "upload_to_file_server"
+            "upload_to_file_server",
+            "extract_image_url",
+            "download_image",
+            "upload_image_to_file_server"
         ],
-        "expectedLastStep": "upload_to_file_server",
-        "parameters": {
-            "login_url": "https://example.com/login",
-            "submit_selector": "#login-button",
-            "username": "testuser",
-            "password": "testpassword"
-        }
+        "expectedLastStep": "upload_image_to_file_server",
+        "level": "medium"
     }
+
 
 ```
 
@@ -94,7 +95,7 @@ You can add your own mock tools or edit the existing list of tools:
    npm install
    ```
 
-2. Set your Anthropic and OpenAI API keys as environment variables:
+2. Set your LLM API keys as environment variables:
    ```
    export ANTHROPIC_API_KEY=your_anthropic_api_key
    export OPENAI_API_KEY=your_openai_api_key
